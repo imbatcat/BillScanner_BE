@@ -1,12 +1,19 @@
 ﻿namespace Domain.Entities
 {
-    internal class User : BaseEntity
+    public class User : BaseEntity
     {
-        public string Email { get; set; } = string.Empty;
-        public string DisplayName { get; set; } = string.Empty;
-        public string PreferredLanguage { get; set; } = "vi";
-        public DateTime UpdatedAt { get; set; }
+        public string? DisplayName { get; set; }
 
-        public ICollection<Bill> Bills { get; set; } = new List<Bill>();
+        public string Email { get; set; } = null!;
+
+        public string Password { get; set; } = null!;
+        public UserRole Role { get; set; } 
+
+        public ICollection<Bill> Bills { get; set; } = [];
+    }
+    
+    public enum UserRole {
+        User,
+        Admin
     }
 }
