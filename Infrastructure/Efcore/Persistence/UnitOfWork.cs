@@ -6,20 +6,14 @@ using System.Collections.Concurrent;
 
 namespace Infrastructure.Efcore.Persistence
 {
-    internal static class RepositoryDictionary
-    {
-        private static readonly ConcurrentDictionary<string, object> _repositoryDictionary = new();
-
-        public static ConcurrentDictionary<string, object> GetRepositoryDictionary() => _repositoryDictionary;
-    }
-
     internal class UnitOfWork(BillScannerDbContext dbContext) : IUnitOfWork
     {
         // ===================================
         // === Fields & Prop
         // ===================================
 
-        private bool _disposed = false;
+        private readonly ConcurrentDictionary<string, object> _repositories = new();
+        private bool _disposed;
 
         // ===================================
         // === Methods
@@ -40,8 +34,10 @@ namespace Infrastructure.Efcore.Persistence
             {
                 if (disposing)
                 {
-                    dbContext.Dispose();
+                    // dbContext is resolved from DI, so we should allow DI container to dispose it.
+                    // dbContext.Dispose(); 
                 }
+
                 _disposed = true;
             }
         }
@@ -59,7 +55,7 @@ namespace Infrastructure.Efcore.Persistence
         {
             var typeEntityName = typeof(T).Name;
 
-            var repoInstanceTypeT = RepositoryDictionary.GetRepositoryDictionary().GetOrAdd(typeEntityName,
+            var repoInstanceTypeT = _repositories.GetOrAdd(typeEntityName,
                 valueFactory: _ =>
                 {
                     var repoType = typeof(GenericRepository<T>);

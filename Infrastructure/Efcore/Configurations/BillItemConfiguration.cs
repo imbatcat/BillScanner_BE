@@ -35,10 +35,10 @@ namespace Infrastructure.Efcore.Configurations
             builder.Property(e => e.ItemConfidence)
                 .IsRequired();
 
-            builder.HasOne(e => e.Bill)
-                .WithMany(e => e.BillItems)
-                .HasForeignKey(e => e.BillId)
-                .OnDelete(DeleteBehavior.Cascade);
+            builder.HasOne(e => e.Item)
+                .WithMany()
+                .HasForeignKey(e => e.ItemId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

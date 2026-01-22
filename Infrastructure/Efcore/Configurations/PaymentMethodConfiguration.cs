@@ -41,11 +41,6 @@ namespace Infrastructure.Efcore.Configurations
 
             builder.Property(e => e.PaymentContent)
                 .HasMaxLength(19);
-
-            builder.HasOne(e => e.Bill)
-                .WithMany(e => e.PaymentMethods)
-                .HasForeignKey(e => e.BillId)
-                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

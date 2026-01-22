@@ -42,10 +42,6 @@ namespace Infrastructure.Efcore.Configurations
                     v => Enum.Parse<BillStatus>(v))
                 .HasDefaultValue(BillStatus.Pending);
 
-            builder.HasOne(e => e.User)
-                .WithMany(e => e.Bills)
-                .HasForeignKey(e => e.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasMany(e => e.PaymentMethods)
                 .WithOne(e => e.Bill)

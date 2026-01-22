@@ -26,7 +26,7 @@ namespace Infrastructure.Extension
                 services.AddSingleton(interceptorType);
             }
 
-            services.AddDbContext<BillScannerDbContext>((serviceProvider, options) =>
+            services.AddDbContextPool<BillScannerDbContext>((serviceProvider, options) =>
             {
                 var interceptorInstances = _interceptors
                     .Select(serviceProvider.GetRequiredService)

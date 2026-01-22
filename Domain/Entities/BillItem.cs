@@ -4,6 +4,8 @@
     {
         public Guid BillId { get; set; }
 
+        public Guid ItemId { get; set; }
+
         public string ItemName { get; set; } = null!;
 
         public string? Description { get; set; }
@@ -17,5 +19,6 @@
         public int ItemConfidence { get; set; }
 
         public Bill Bill { get; set; } = null!;
+        public Item Item { get; set; }
     }
 }
