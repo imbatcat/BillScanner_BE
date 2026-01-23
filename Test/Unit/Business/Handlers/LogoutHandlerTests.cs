@@ -10,16 +10,16 @@ namespace Test.Unit.Business.Handlers
     {
         private readonly Mock<IUserTokenService> _tokenServiceMock;
 
-        private readonly Mock<ILogger<LogoutCommandHandler>> _loggerMock;
+        private readonly Mock<ILogger<LogoutHandler>> _loggerMock;
 
-        private readonly LogoutCommandHandler _handler;
+        private readonly LogoutHandler _handler;
 
         public LogoutHandlerTests()
         {
             _tokenServiceMock = new Mock<IUserTokenService>();
-            _loggerMock = new Mock<ILogger<LogoutCommandHandler>>();
+            _loggerMock = new Mock<ILogger<LogoutHandler>>();
 
-            _handler = new LogoutCommandHandler(
+            _handler = new LogoutHandler(
                 _tokenServiceMock.Object,
                 _loggerMock.Object);
         }
@@ -29,14 +29,14 @@ namespace Test.Unit.Business.Handlers
         {
             // Arrange
             var userId = Guid.NewGuid().ToString();
-            var command = new LogoutCommand { UserId = userId };
+            var LogoutCommand = new LogoutCommand { UserId = userId };
 
             _tokenServiceMock
                 .Setup(t => t.RevokeUserTokenAsync(userId))
                 .Returns(Task.CompletedTask);
 
             // Act
-            var result = await _handler.Handle(command, CancellationToken.None);
+            var result = await _handler.Handle(LogoutCommand, CancellationToken.None);
 
             // Assert
             Assert.Equal(MediatRUnit.Value, result);
@@ -48,14 +48,14 @@ namespace Test.Unit.Business.Handlers
         {
             // Arrange
             var userId = "test-user-123";
-            var command = new LogoutCommand { UserId = userId };
+            var LogoutCommand = new LogoutCommand { UserId = userId };
 
             _tokenServiceMock
                 .Setup(t => t.RevokeUserTokenAsync(It.IsAny<string>()))
                 .Returns(Task.CompletedTask);
 
             // Act
-            await _handler.Handle(command, CancellationToken.None);
+            await _handler.Handle(LogoutCommand, CancellationToken.None);
 
             // Assert
             _tokenServiceMock.Verify(
@@ -68,14 +68,14 @@ namespace Test.Unit.Business.Handlers
         {
             // Arrange
             var userId = Guid.NewGuid().ToString();
-            var command = new LogoutCommand { UserId = userId };
+            var LogoutCommand = new LogoutCommand { UserId = userId };
 
             _tokenServiceMock
                 .Setup(t => t.RevokeUserTokenAsync(It.IsAny<string>()))
                 .Returns(Task.CompletedTask);
 
             // Act
-            await _handler.Handle(command, CancellationToken.None);
+            await _handler.Handle(LogoutCommand, CancellationToken.None);
 
             // Assert
             _loggerMock.Verify(
@@ -95,7 +95,7 @@ namespace Test.Unit.Business.Handlers
         {
             // Arrange
             var userId = Guid.NewGuid().ToString();
-            var command = new LogoutCommand { UserId = userId };
+            var LogoutCommand = new LogoutCommand { UserId = userId };
 
             var expectedException = new InvalidOperationException("Token revocation failed");
 
@@ -105,7 +105,7 @@ namespace Test.Unit.Business.Handlers
 
             // Act & Assert
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-                () => _handler.Handle(command, CancellationToken.None));
+                () => _handler.Handle(LogoutCommand, CancellationToken.None));
 
             Assert.Equal("Token revocation failed", exception.Message);
         }
@@ -114,14 +114,14 @@ namespace Test.Unit.Business.Handlers
         public async Task Handle_EmptyUserId_StillCallsRevokeUserToken()
         {
             // Arrange
-            var command = new LogoutCommand { UserId = string.Empty };
+            var LogoutCommand = new LogoutCommand { UserId = string.Empty };
 
             _tokenServiceMock
                 .Setup(t => t.RevokeUserTokenAsync(string.Empty))
                 .Returns(Task.CompletedTask);
 
             // Act
-            await _handler.Handle(command, CancellationToken.None);
+            await _handler.Handle(LogoutCommand, CancellationToken.None);
 
             // Assert
             _tokenServiceMock.Verify(
@@ -155,7 +155,7 @@ namespace Test.Unit.Business.Handlers
         {
             // Arrange
             var userId = Guid.NewGuid().ToString();
-            var command = new LogoutCommand { UserId = userId };
+            var LogoutCommand = new LogoutCommand { UserId = userId };
             var cts = new CancellationTokenSource();
 
             _tokenServiceMock
@@ -163,7 +163,7 @@ namespace Test.Unit.Business.Handlers
                 .Returns(Task.CompletedTask);
 
             // Act
-            await _handler.Handle(command, cts.Token);
+            await _handler.Handle(LogoutCommand, cts.Token);
 
             // Assert
             _tokenServiceMock.Verify(t => t.RevokeUserTokenAsync(userId), Times.Once);
@@ -173,14 +173,14 @@ namespace Test.Unit.Business.Handlers
         public async Task Handle_SuccessfulLogout_ReturnsUnitValue()
         {
             // Arrange
-            var command = new LogoutCommand { UserId = "test-user" };
+            var LogoutCommand = new LogoutCommand { UserId = "test-user" };
 
             _tokenServiceMock
                 .Setup(t => t.RevokeUserTokenAsync(It.IsAny<string>()))
                 .Returns(Task.CompletedTask);
 
             // Act
-            var result = await _handler.Handle(command, CancellationToken.None);
+            var result = await _handler.Handle(LogoutCommand, CancellationToken.None);
 
             // Assert
             Assert.NotNull(result);

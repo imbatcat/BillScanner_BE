@@ -10,10 +10,10 @@ using System.Text;
 
 namespace Business.Handlers.Authentication.Login
 {
-    public class LoginCommandHandler(
+    public class LoginHandler(
         IUnitOfWork _unitOfWork,
         IUserTokenService _tokenService,
-        ILogger<LoginCommandHandler> _logger) : IRequestHandler<LoginCommand, LoginResponse>
+        ILogger<LoginHandler> _logger) : IRequestHandler<LoginCommand, LoginResponse>
     {
         public async Task<LoginResponse> Handle(LoginCommand request, CancellationToken cancellationToken)
         {

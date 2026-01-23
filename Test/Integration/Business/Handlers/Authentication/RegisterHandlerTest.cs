@@ -18,12 +18,6 @@ namespace Test.Integration.Business.Handlers.Authentication
         ITestOutputHelper outputHelper)
         : BaseTest(factory, outputHelper)
     {
-        private readonly JsonSerializerOptions _jsonSerializerOptions = new()
-        {
-            Converters = { new JsonStringEnumConverter() },
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
-
         [Fact]
         public async Task Register_ShouldReturnSuccess_WhenUserDoesNotExist()
         {
@@ -41,7 +35,7 @@ namespace Test.Integration.Business.Handlers.Authentication
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.Created);
             var responseContent = await response.Content.ReadAsStringAsync();
-            var result = JsonSerializer.Deserialize<RegisterResponse>(responseContent, _jsonSerializerOptions);
+            var result = JsonSerializer.Deserialize<RegisterResponse>(responseContent, JsonSerializerOptions);
 
             result.Should().NotBeNull();
             result.Email.Should().Be("test@test.com");
@@ -90,7 +84,7 @@ namespace Test.Integration.Business.Handlers.Authentication
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.Conflict);
             var responseContent = await response.Content.ReadAsStringAsync();
-            var result = JsonSerializer.Deserialize<ErrorResponse>(responseContent, _jsonSerializerOptions);
+            var result = JsonSerializer.Deserialize<ErrorResponse>(responseContent, JsonSerializerOptions);
 
             result.Should().NotBeNull();
             result.Message.Should().Be("A record with this information already exists");

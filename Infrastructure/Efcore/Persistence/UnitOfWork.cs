@@ -1,12 +1,15 @@
 ﻿using Business.Interfaces.Repositories;
 using Domain.Entities;
+using Infrastructure.MarkerInterfaces;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Collections.Concurrent;
+using JetBrains.Annotations;
 
 namespace Infrastructure.Efcore.Persistence
 {
-    internal class UnitOfWork(BillScannerDbContext dbContext) : IUnitOfWork
+    [UsedImplicitly]
+    public class UnitOfWork(BillScannerDbContext dbContext) : IUnitOfWork, IScopedService
     {
         // ===================================
         // === Fields & Prop

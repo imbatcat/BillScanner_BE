@@ -18,12 +18,6 @@ namespace Test.Integration.Business.Handlers.Authentication
         ITestOutputHelper outputHelper)
         : BaseTest(factory, outputHelper)
     {
-        private readonly JsonSerializerOptions _jsonSerializerOptions = new()
-        {
-            Converters = { new JsonStringEnumConverter() },
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        };
-
         [Fact]
         public async Task Login_ShouldReturnSuccess_WhenUserExists()
         {
@@ -57,7 +51,7 @@ namespace Test.Integration.Business.Handlers.Authentication
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-            var result = await response.Content.ReadFromJsonAsync<LoginResponse>(_jsonSerializerOptions);
+            var result = await response.Content.ReadFromJsonAsync<LoginResponse>(JsonSerializerOptions);
 
             result.Should().NotBeNull();
             result.AccessToken.Should().NotBeEmpty();
@@ -98,7 +92,7 @@ namespace Test.Integration.Business.Handlers.Authentication
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
-            var result = await response.Content.ReadFromJsonAsync<ErrorResponse>(_jsonSerializerOptions);
+            var result = await response.Content.ReadFromJsonAsync<ErrorResponse>(JsonSerializerOptions);
 
             result.Should().NotBeNull();
             result.Message.Should().Be("Invalid email or password");

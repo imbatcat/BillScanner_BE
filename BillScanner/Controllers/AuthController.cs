@@ -1,6 +1,5 @@
 ﻿using BillScanner.Controllers.Base;
 using Business.Handlers.Authentication.Login;
-using Business.Handlers.Authentication.Register;
 using Business.Handlers.Authentication.Logout;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -8,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Business.Handlers.Authentication.Login.Dto;
 using Business.Handlers.Authentication.Register.Dto;
+using Business.Handlers.Authentication.Register;
 
 namespace BillScanner.Controllers
 {
@@ -91,21 +91,4 @@ namespace BillScanner.Controllers
             return OkWithMessage("Logged out successfully");
         }
     }
-
-    #region Request DTOs
-
-    public record RegisterRequest
-    {
-        public string Email { get; init; } = null!;
-        public string Password { get; init; } = null!;
-        public string? DisplayName { get; init; }
-    }
-
-    public record LoginRequest
-    {
-        public string Email { get; init; } = null!;
-        public string Password { get; init; } = null!;
-    }
-
-    #endregion Request DTOs
 }

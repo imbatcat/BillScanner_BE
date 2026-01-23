@@ -31,6 +31,7 @@
 
     <ItemGroup>
       <Folder Include="Handlers\Authentication\Login\Mapping\" />
+      <Folder Include="Handlers\Images\GetUploadStorageSignature\Dto\" />
     </ItemGroup>
 
   </Project>

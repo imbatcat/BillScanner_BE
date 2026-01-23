@@ -4,9 +4,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Business.Handlers.Authentication.Logout
 {
-    public class LogoutCommandHandler(
+    public class LogoutHandler(
         IUserTokenService tokenService,
-        ILogger<LogoutCommandHandler> logger) : IRequestHandler<LogoutCommand, Unit>
+        ILogger<LogoutHandler> logger) : IRequestHandler<LogoutCommand, Unit>
     {
         public async Task<Unit> Handle(LogoutCommand request, CancellationToken cancellationToken)
         {

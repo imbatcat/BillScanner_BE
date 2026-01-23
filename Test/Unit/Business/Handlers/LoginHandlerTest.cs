@@ -1,5 +1,6 @@
 ﻿using Business.Handlers.Authentication.Login;
 using Business.Handlers.Authentication.Login.Spec;
+using Business.Handlers.Authentication.Register;
 using Business.Interfaces.Repositories;
 using Business.Interfaces.Services;
 using Domain.Entities;
@@ -17,27 +18,26 @@ namespace Test.Unit.Business.Handlers
 
         private readonly Mock<IUserTokenService> _tokenServiceMock;
 
-        private readonly Mock<ILogger<LoginCommandHandler>> _loggerMock;
+        private readonly Mock<ILogger<CommandHandler>> _loggerMock;
 
-        private readonly LoginCommandHandler _handler;
+        private readonly CommandHandler _handler;
 
         public LoginHandlerTest()
         {
             _unitOfWorkMock = new Mock<IUnitOfWork>();
-            _loggerMock = new Mock<ILogger<LoginCommandHandler>>();
+            _loggerMock = new Mock<ILogger<CommandHandler>>();
             _userRepositoryMock = new Mock<IGenericRepository<User>>();
             _tokenServiceMock = new Mock<IUserTokenService>();
-            _handler = new LoginCommandHandler(
+            _handler = new CommandHandler(
                 _unitOfWorkMock.Object,
-                _tokenServiceMock.Object,
-                _loggerMock.Object);
+                _tokenServiceMock.Object);
         }
 
         [Fact]
         public async Task LoginHandler_SuccessfulLogin_LoginSuccess()
         {
             // Arrange
-            var query = new LoginCommand
+            var query = new RegisterCommand
             {
                 Email = "testemail@password",
                 Password = "password"
@@ -70,7 +70,7 @@ namespace Test.Unit.Business.Handlers
         public async Task LoginHandler_FailedLoginUserNotFound_LoginFailed()
         {
             // Arrange
-            var query = new LoginCommand
+            var query = new RegisterCommand
             {
                 Email = "testemail@password",
                 Password = "password"
@@ -97,7 +97,7 @@ namespace Test.Unit.Business.Handlers
         public async Task LoginHandler_FailedLoginInvalidPassword_LoginFailed()
         {
             // Arrange
-            var query = new LoginCommand
+            var query = new RegisterCommand
             {
                 Email = "testemail@password",
                 Password = "password"

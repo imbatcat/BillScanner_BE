@@ -16,18 +16,18 @@ namespace Test.Unit.Business.Handlers
 
         private readonly Mock<IUserTokenService> _tokenServiceMock;
 
-        private readonly Mock<ILogger<RegisterCommandHandler>> _loggerMock;
+        private readonly Mock<ILogger<CommandHandler>> _loggerMock;
 
-        private readonly RegisterCommandHandler _handler;
+        private readonly CommandHandler _handler;
 
         public RegisterHandlerTests()
         {
             _userRepositoryMock = new Mock<IGenericRepository<User>>();
             _unitOfWorkMock = new Mock<IUnitOfWork>();
             _tokenServiceMock = new Mock<IUserTokenService>();
-            _loggerMock = new Mock<ILogger<RegisterCommandHandler>>();
+            _loggerMock = new Mock<ILogger<CommandHandler>>();
 
-            _handler = new RegisterCommandHandler(
+            _handler = new CommandHandler(
                 _unitOfWorkMock.Object,
                 _tokenServiceMock.Object);
         }

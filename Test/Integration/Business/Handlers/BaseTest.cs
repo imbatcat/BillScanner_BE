@@ -1,4 +1,6 @@
-﻿using Test.Configuration;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
+using Test.Configuration;
 using Xunit.Abstractions;
 
 namespace Test.Integration.Business.Handlers
@@ -15,7 +17,14 @@ namespace Test.Integration.Business.Handlers
             Factory = factory;
             Factory.Output = outputHelper;
             Client = factory.HttpClient;
+            JsonSerializerOptions = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                Converters = { new JsonStringEnumConverter() }
+            };
         }
+
+        protected readonly JsonSerializerOptions JsonSerializerOptions;
 
         public async Task DisposeAsync()
         {

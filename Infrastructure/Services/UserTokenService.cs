@@ -1,21 +1,22 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Business.Interfaces.Services;
 using Domain.Entities;
 using Business.Interfaces.Repositories;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
+using Infrastructure.MarkerInterfaces;
+using JetBrains.Annotations;
 
 namespace Infrastructure.Services;
 
+[UsedImplicitly]
 public class UserTokenService(
-        IConfiguration configuration,
-        IUnitOfWork unitOfWork
-    ) : IUserTokenService
+    IConfiguration configuration,
+    IUnitOfWork unitOfWork
+) : IUserTokenService, IScopedService
 {
     public string CreateAccessToken(User user, List<string> roles)
     {
@@ -28,13 +29,14 @@ public class UserTokenService(
         var tokenDescriptior = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(
-                [
-                    new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                    new Claim(ClaimTypes.Email, user.Email),
-                    new Claim(ClaimTypes.Name, user.DisplayName ?? ""),
-                    new Claim(ClaimTypes.Role, string.Join(",", roles)),
-                ]),
-            Expires = DateTime.Now.AddMinutes(configuration.GetValue<int>("JwtAccessTokenSettings:ExpirationInMinutes")),
+            [
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Name, user.DisplayName ?? ""),
+                new Claim(ClaimTypes.Role, string.Join(",", roles)),
+            ]),
+            Expires =
+                DateTime.Now.AddMinutes(configuration.GetValue<int>("JwtAccessTokenSettings:ExpirationInMinutes")),
             SigningCredentials = credentials,
             Audience = jwtSettings["Audience"],
             Issuer = jwtSettings["Issuer"]!,
@@ -58,13 +60,13 @@ public class UserTokenService(
         var audiences = jwtSettings.GetSection("Audience").Get<string[]>() ?? [];
 
         var claimsList = new List<Claim>()
-            {
-                new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                new(JwtRegisteredClaimNames.Email, user.Email!),
-                new(JwtRegisteredClaimNames.Name, user.DisplayName ?? ""),
-                new("role", string.Join(",", roles)),
-                new("aud", audiences[0]),
-            };
+        {
+            new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new(JwtRegisteredClaimNames.Email, user.Email),
+            new(JwtRegisteredClaimNames.Name, user.DisplayName ?? ""),
+            new("role", string.Join(",", roles)),
+            new("aud", audiences[0]),
+        };
 
         var tokenDescriptior = new SecurityTokenDescriptor
         {
@@ -94,10 +96,11 @@ public class UserTokenService(
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Claims = new Dictionary<string, object>
-                    {
-                        { JwtRegisteredClaimNames.Sub, user.Id.ToString() }
-                    },
-            Expires = DateTime.Now.AddMinutes(configuration.GetValue<int>("JwtRefreshTokenSettings:ExpirationInMinutes")),
+            {
+                { JwtRegisteredClaimNames.Sub, user.Id.ToString() }
+            },
+            Expires = DateTime.Now.AddMinutes(
+                configuration.GetValue<int>("JwtRefreshTokenSettings:ExpirationInMinutes")),
             SigningCredentials = credentials,
             Issuer = jwtSettings["Issuer"]!,
         };
@@ -129,7 +132,6 @@ public class UserTokenService(
     {
         try
         {
-            var jwtSettings = configuration.GetSection("JwtRefreshTokenSettings");
             var handler = new JsonWebTokenHandler();
 
             var jsonToken = handler.ReadJsonWebToken(refreshToken);
@@ -164,12 +166,12 @@ public class UserTokenService(
                     return null;
                 }
             }
+
             return userId;
         }
-        catch (Exception ex)
+        catch
         {
             return null;
         }
     }
-
 }
