@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Infrastructure.Extension
 {
@@ -59,20 +60,21 @@ namespace Infrastructure.Extension
 
             services.AddSingleton(sp =>
             {
-                var settings = sp.GetRequiredService<CloudinarySettings>();
+                var settings = sp.GetRequiredService<IOptions<CloudinarySettings>>();
                 var account = new Account(
-                    settings.CloudName,
-                    settings.ApiKey,
-                    settings.ApiSecret
+                    settings.Value.CloudName,
+                    settings.Value.ApiKey,
+                    settings.Value.ApiSecret
                 );
                 return new Cloudinary(account);
             });
         }
 
-        public static IServiceCollection AddSettings(
+        public static void AddSettings(
             this IServiceCollection services,
             IConfiguration configuration)
         {
+            services.Configure<CloudinarySettings>(configuration.GetSection("CloudinarySettings"));
             // Find all classes implementing IAppSettings
             var settingsTypes = typeof(IInfrastructureMarker).Assembly
                 .GetTypes()
@@ -96,8 +98,6 @@ namespace Infrastructure.Extension
                 // Invoke: services.Configure<CurrentSettingsType>(section)
                 genericMethod.Invoke(null, new object[] { services, section });
             }
-
-            return services;
         }
     }
 }
