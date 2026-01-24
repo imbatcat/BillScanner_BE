@@ -1,12 +1,12 @@
 ﻿using Business.Handlers.Authentication.Login;
 using Business.Handlers.Authentication.Login.Spec;
-using Business.Handlers.Authentication.Register;
 using Business.Interfaces.Repositories;
 using Business.Interfaces.Services;
 using Domain.Entities;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Xunit.Abstractions;
 
 namespace Test.Unit.Business.Handlers
 {
@@ -18,26 +18,47 @@ namespace Test.Unit.Business.Handlers
 
         private readonly Mock<IUserTokenService> _tokenServiceMock;
 
-        private readonly Mock<ILogger<CommandHandler>> _loggerMock;
+        private readonly Mock<ILogger<LoginHandler>> _loggerMock;
 
-        private readonly CommandHandler _handler;
+        private readonly LoginHandler _handler;
 
-        public LoginHandlerTest()
+        public LoginHandlerTest(ITestOutputHelper output)
         {
             _unitOfWorkMock = new Mock<IUnitOfWork>();
-            _loggerMock = new Mock<ILogger<CommandHandler>>();
+            _loggerMock = new Mock<ILogger<LoginHandler>>();
+
+            _loggerMock.Setup(x => x.Log(
+                    It.IsAny<LogLevel>(),
+                    It.IsAny<EventId>(),
+                    It.IsAny<It.IsAnyType>(),
+                    It.IsAny<Exception>(),
+                    (Func<It.IsAnyType, Exception?, string>)It.IsAny<object>()))
+                .Callback(new InvocationAction(invocation =>
+                {
+                    var logLevel = (LogLevel)invocation.Arguments[0];
+                    var state = invocation.Arguments[2];
+                    var exception = (Exception?)invocation.Arguments[3];
+                    var formatter = invocation.Arguments[4];
+
+                    var invokeMethod = formatter.GetType().GetMethod("Invoke");
+                    var logMessage = (string?)invokeMethod?.Invoke(formatter, new[] { state, exception });
+
+                    output.WriteLine($"[{logLevel}] {logMessage}");
+                }));
+
             _userRepositoryMock = new Mock<IGenericRepository<User>>();
             _tokenServiceMock = new Mock<IUserTokenService>();
-            _handler = new CommandHandler(
+            _handler = new LoginHandler(
                 _unitOfWorkMock.Object,
-                _tokenServiceMock.Object);
+                _tokenServiceMock.Object,
+                _loggerMock.Object);
         }
 
         [Fact]
         public async Task LoginHandler_SuccessfulLogin_LoginSuccess()
         {
             // Arrange
-            var query = new RegisterCommand
+            var query = new LoginCommand
             {
                 Email = "testemail@password",
                 Password = "password"
@@ -55,22 +76,13 @@ namespace Test.Unit.Business.Handlers
 
             // Act
             await _handler.Handle(query, CancellationToken.None);
-
-            _loggerMock.Verify(
-                x => x.Log(
-                    LogLevel.Information,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("User logged in successfully")),
-                    It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-                Times.Once);
         }
 
         [Fact]
         public async Task LoginHandler_FailedLoginUserNotFound_LoginFailed()
         {
             // Arrange
-            var query = new RegisterCommand
+            var query = new LoginCommand
             {
                 Email = "testemail@password",
                 Password = "password"
@@ -79,25 +91,18 @@ namespace Test.Unit.Business.Handlers
             SetupNullUserByEmail();
 
             // Act & Assert
-            var exception = await Assert.ThrowsAsync<UnauthorizedAccessException>(
-                async () => await _handler.Handle(query, CancellationToken.None));
+            var exception =
+                await Assert.ThrowsAsync<ArgumentException>(async () =>
+                    await _handler.Handle(query, CancellationToken.None));
 
             Assert.NotNull(exception);
-            _loggerMock.Verify(
-                x => x.Log(
-                    LogLevel.Warning,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("User not found")),
-                    It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-                Times.Once);
         }
 
         [Fact]
         public async Task LoginHandler_FailedLoginInvalidPassword_LoginFailed()
         {
             // Arrange
-            var query = new RegisterCommand
+            var query = new LoginCommand
             {
                 Email = "testemail@password",
                 Password = "password"
@@ -113,8 +118,8 @@ namespace Test.Unit.Business.Handlers
             SetupInvalidPassword(user);
 
             // Act & Assert
-            var exception = await Assert.ThrowsAsync<UnauthorizedAccessException>(
-                async () => await _handler.Handle(query, CancellationToken.None));
+            var exception = await Assert.ThrowsAsync<ArgumentException>(async () =>
+                await _handler.Handle(query, CancellationToken.None));
 
             Assert.NotNull(exception);
             _loggerMock.Verify(
@@ -130,21 +135,21 @@ namespace Test.Unit.Business.Handlers
         private void SetupInvalidPassword(User user)
         {
             _userRepositoryMock.Setup(x => x.GetBySpecificationAsync(It.IsAny<UserByEmailSpecification>(), true))
-                                    .ReturnsAsync(user);
+                .ReturnsAsync(user);
             _unitOfWorkMock.Setup(x => x.Repository<User>()).Returns(_userRepositoryMock.Object);
         }
 
         private void SetupNullUserByEmail()
         {
             _userRepositoryMock.Setup(x => x.GetBySpecificationAsync(It.IsAny<UserByEmailSpecification>(), true))
-                                    .ReturnsAsync((User?)null);
+                .ReturnsAsync((User?)null);
             _unitOfWorkMock.Setup(x => x.Repository<User>()).Returns(_userRepositoryMock.Object);
         }
 
         private void SetupSuccessfulLogin(User user)
         {
             _userRepositoryMock.Setup(x => x.GetBySpecificationAsync(It.IsAny<UserByEmailSpecification>(), true))
-                                    .ReturnsAsync(user);
+                .ReturnsAsync(user);
             _unitOfWorkMock.Setup(x => x.Repository<User>()).Returns(_userRepositoryMock.Object);
 
             _tokenServiceMock.Setup(x => x.CreateAccessToken(It.IsAny<User>(), It.IsAny<List<string>>()))

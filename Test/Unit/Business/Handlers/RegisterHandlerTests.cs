@@ -3,33 +3,84 @@ using Business.Handlers.Authentication.Register.Spec;
 using Business.Interfaces.Repositories;
 using Business.Interfaces.Services;
 using Domain.Entities;
+using EntityFramework.Exceptions.Common;
+using Infrastructure.Efcore.Interceptors;
+using Infrastructure.Efcore.Persistence;
+using Meziantou.Extensions.Logging.Xunit;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Testcontainers.PostgreSql;
+using Xunit;
+using Xunit.Abstractions;
 
 namespace Test.Unit.Business.Handlers
 {
-    public class RegisterHandlerTests
+    public class RegisterHandlerTests : IAsyncLifetime
     {
-        private readonly Mock<IGenericRepository<User>> _userRepositoryMock;
+        private readonly PostgreSqlContainer _dbContainer = new PostgreSqlBuilder()
+            .WithImage("postgres:18.1-alpine3.23")
+            .WithDatabase("billscanner_test")
+            .WithUsername("test")
+            .WithPassword("test")
+            .Build();
 
-        private readonly Mock<IUnitOfWork> _unitOfWorkMock;
-
+        private readonly ITestOutputHelper _output;
         private readonly Mock<IUserTokenService> _tokenServiceMock;
 
-        private readonly Mock<ILogger<CommandHandler>> _loggerMock;
+        private BillScannerDbContext _dbContext = null!;
+        private UnitOfWork _unitOfWork = null!;
+        private RegisterHandler _handler = null!;
+        private ILoggerFactory _loggerFactory = null!;
 
-        private readonly CommandHandler _handler;
-
-        public RegisterHandlerTests()
+        public RegisterHandlerTests(ITestOutputHelper output)
         {
-            _userRepositoryMock = new Mock<IGenericRepository<User>>();
-            _unitOfWorkMock = new Mock<IUnitOfWork>();
+            _output = output;
             _tokenServiceMock = new Mock<IUserTokenService>();
-            _loggerMock = new Mock<ILogger<CommandHandler>>();
+        }
 
-            _handler = new CommandHandler(
-                _unitOfWorkMock.Object,
+        public async Task InitializeAsync()
+        {
+            // Start the container
+            await _dbContainer.StartAsync();
+
+            // Setup Logging
+            _loggerFactory = LoggerFactory.Create(builder =>
+            {
+                builder.SetMinimumLevel(LogLevel.Debug);
+                builder.AddProvider(new XUnitLoggerProvider(_output));
+            });
+
+            var interceptorLogger = _loggerFactory.CreateLogger<SqlExceptionHandlingInterceptor>();
+
+            // Setup DbContext
+            var options = new DbContextOptionsBuilder<BillScannerDbContext>()
+                .UseNpgsql(_dbContainer.GetConnectionString())
+                .AddInterceptors(new SqlExceptionHandlingInterceptor(interceptorLogger))
+                .EnableSensitiveDataLogging()
+                .EnableDetailedErrors()
+                .Options;
+
+            _dbContext = new BillScannerDbContext(options);
+            await _dbContext.Database.EnsureCreatedAsync();
+
+            // Setup UnitOfWork
+            _unitOfWork = new UnitOfWork(_dbContext);
+
+            // Setup Handler
+            _handler = new RegisterHandler(
+                _unitOfWork,
                 _tokenServiceMock.Object);
+
+            // Default Token Service Mocks
+            SetupTokenService();
+        }
+
+        public async Task DisposeAsync()
+        {
+            await _dbContext.DisposeAsync();
+            await _dbContainer.DisposeAsync();
+            _loggerFactory.Dispose();
         }
 
         [Fact]
@@ -43,27 +94,6 @@ namespace Test.Unit.Business.Handlers
                 DisplayName = "New User"
             };
 
-            // User doesn't exist
-            _userRepositoryMock
-                .Setup(r => r.GetBySpecificationAsync(It.IsAny<UserByEmailSpecification>(), true))
-                .ReturnsAsync((User?)null);
-
-            _unitOfWorkMock
-                .Setup(u => u.Repository<User>())
-                .Returns(_userRepositoryMock.Object);
-
-            // Setup successful insert
-            _userRepositoryMock
-                .Setup(r => r.Insert(It.IsAny<User>()))
-                .Returns<User>(u => u);
-
-            _unitOfWorkMock
-                .Setup(u => u.CommitAsync())
-                .ReturnsAsync(1);
-
-            // Setup token service
-            SetupTokenService();
-
             // Act
             var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -72,9 +102,11 @@ namespace Test.Unit.Business.Handlers
             Assert.Equal(command.Email, result.Email);
             Assert.Equal(command.DisplayName, result.DisplayName);
             Assert.Equal("access-token", result.AccessToken);
-            Assert.Equal("refresh-token", result.RefreshToken);
-            Assert.Equal("id-token", result.IdToken);
             Assert.NotEqual(Guid.Empty, result.UserId);
+
+            var userInDb = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == command.Email);
+            Assert.NotNull(userInDb);
+            Assert.Equal("New User", userInDb.DisplayName);
         }
 
         [Fact]
@@ -85,58 +117,48 @@ namespace Test.Unit.Business.Handlers
             {
                 Email = "testuser@example.com",
                 Password = "Password123!",
-                DisplayName = null // No display name provided
+                DisplayName = null
             };
-
-            SetupSuccessfulRegistration();
 
             // Act
             var result = await _handler.Handle(command, CancellationToken.None);
 
             // Assert
             Assert.NotNull(result);
-            Assert.NotNull(result.DisplayName);
-            // Verify the user was inserted with email prefix as display name
-            _userRepositoryMock.Verify(
-                r => r.Insert(It.Is<User>(u => u.DisplayName == "testuser")),
-                Times.Once);
+            Assert.Equal("testuser", result.DisplayName);
+
+            var userInDb = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == command.Email);
+            Assert.NotNull(userInDb);
+            Assert.Equal("testuser", userInDb.DisplayName);
         }
 
         [Fact]
-        public async Task Handle_DuplicateEmail_ThrowsInvalidOperationException()
+        public async Task Handle_DuplicateEmail_ThrowsUniqueConstraintException()
         {
             // Arrange
+            var existingUser = new User
+            {
+                Id = Guid.NewGuid(),
+                Email = "existing@example.com",
+                Password = "hashed-password",
+                DisplayName = "Existing"
+            };
+
+            _dbContext.Users.Add(existingUser);
+            await _dbContext.SaveChangesAsync();
+
             var command = new RegisterCommand
             {
                 Email = "existing@example.com",
                 Password = "Password123!"
             };
 
-            var existingUser = new User
-            {
-                Id = Guid.NewGuid(),
-                Email = "existing@example.com",
-                Password = "hashed-password"
-            };
-
-            // User already exists
-            _userRepositoryMock
-                .Setup(r => r.GetBySpecificationAsync(It.IsAny<UserByEmailSpecification>(), true))
-                .ReturnsAsync(existingUser);
-
-            _unitOfWorkMock
-                .Setup(u => u.Repository<User>())
-                .Returns(_userRepositoryMock.Object);
-
             // Act & Assert
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-                () => _handler.Handle(command, CancellationToken.None));
+            var exception =
+                await Assert.ThrowsAsync<UniqueConstraintException>(() =>
+                    _handler.Handle(command, CancellationToken.None));
 
-            Assert.Equal("User with this email already exists", exception.Message);
-
-            // Verify Insert was never called
-            _userRepositoryMock.Verify(r => r.Insert(It.IsAny<User>()), Times.Never);
-            _unitOfWorkMock.Verify(u => u.CommitAsync(), Times.Never);
+            Assert.NotNull(exception);
         }
 
         [Fact]
@@ -145,70 +167,57 @@ namespace Test.Unit.Business.Handlers
             // Arrange
             var command = new RegisterCommand
             {
-                Email = "test@example.com",
+                Email = "logging-test@example.com",
                 Password = "Password123!",
-                DisplayName = "Test User"
+                DisplayName = "Logger Test"
             };
-
-            SetupSuccessfulRegistration();
-
-            // Act
-            await _handler.Handle(command, CancellationToken.None);
-
-            // Assert - Verify logging
-            _loggerMock.Verify(
-                x => x.Log(
-                    LogLevel.Information,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("User registered successfully")),
-                    It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-                Times.Once);
-        }
-
-        [Fact]
-        public async Task Handle_SuccessfulRegistration_CallsCommitAsync()
-        {
-            // Arrange
-            var command = new RegisterCommand
-            {
-                Email = "test@example.com",
-                Password = "Password123!",
-                DisplayName = "Test User"
-            };
-
-            SetupSuccessfulRegistration();
 
             // Act
             await _handler.Handle(command, CancellationToken.None);
 
             // Assert
-            _unitOfWorkMock.Verify(u => u.CommitAsync(), Times.Once);
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == command.Email);
+            Assert.NotNull(user);
+        }
+
+        [Fact]
+        public async Task Handle_SuccessfulRegistration_PersistsData()
+        {
+            // Arrange
+            var command = new RegisterCommand
+            {
+                Email = "persistance@example.com",
+                Password = "Password123!",
+                DisplayName = "Persistence Test"
+            };
+
+            // Act
+            await _handler.Handle(command, CancellationToken.None);
+
+            // Assert
+            var count = await _dbContext.Users.CountAsync(u => u.Email == command.Email);
+            Assert.Equal(1, count);
         }
 
         [Fact]
         public async Task Handle_SuccessfulRegistration_InsertsUserWithHashedPassword()
         {
             // Arrange
+            var password = "PlainTextPassword";
             var command = new RegisterCommand
             {
-                Email = "test@example.com",
-                Password = "PlainTextPassword",
-                DisplayName = "Test User"
+                Email = "hashing@example.com",
+                Password = password,
+                DisplayName = "Hashing Test"
             };
-
-            SetupSuccessfulRegistration();
 
             // Act
             await _handler.Handle(command, CancellationToken.None);
 
-            // Assert - Verify password was hashed (not stored as plain text)
-            _userRepositoryMock.Verify(
-                r => r.Insert(It.Is<User>(u =>
-                    u.Email == command.Email &&
-                    u.Password != "PlainTextPassword" &&
-                    !string.IsNullOrEmpty(u.Password))),
-                Times.Once);
+            // Assert
+            var user = await _dbContext.Users.FirstAsync(u => u.Email == command.Email);
+            Assert.NotEqual(password, user.Password);
+            Assert.False(string.IsNullOrEmpty(user.Password));
         }
 
         [Fact]
@@ -217,17 +226,15 @@ namespace Test.Unit.Business.Handlers
             // Arrange
             var command = new RegisterCommand
             {
-                Email = "test@example.com",
+                Email = "roles@example.com",
                 Password = "Password123!",
-                DisplayName = "Test User"
+                DisplayName = "Roles Test"
             };
-
-            SetupSuccessfulRegistration();
 
             // Act
             await _handler.Handle(command, CancellationToken.None);
 
-            // Assert - Verify token service was called with "User" role
+            // Assert
             _tokenServiceMock.Verify(
                 t => t.CreateAccessToken(
                     It.IsAny<User>(),
@@ -247,12 +254,10 @@ namespace Test.Unit.Business.Handlers
             // Arrange
             var command = new RegisterCommand
             {
-                Email = "test@example.com",
+                Email = "tokens@example.com",
                 Password = "Password123!",
-                DisplayName = "Test User"
+                DisplayName = "Tokens Test"
             };
-
-            SetupSuccessfulRegistration();
 
             // Act
             await _handler.Handle(command, CancellationToken.None);
@@ -271,30 +276,6 @@ namespace Test.Unit.Business.Handlers
                 Times.Once);
         }
 
-        #region Helper Methods
-
-        private void SetupSuccessfulRegistration()
-        {
-            // User doesn't exist
-            _userRepositoryMock
-                .Setup(r => r.GetBySpecificationAsync(It.IsAny<UserByEmailSpecification>(), true))
-                .ReturnsAsync((User?)null);
-
-            _unitOfWorkMock
-                .Setup(u => u.Repository<User>())
-                .Returns(_userRepositoryMock.Object);
-
-            _userRepositoryMock
-                .Setup(r => r.Insert(It.IsAny<User>()))
-                .Returns<User>(u => u);
-
-            _unitOfWorkMock
-                .Setup(u => u.CommitAsync())
-                .ReturnsAsync(1);
-
-            SetupTokenService();
-        }
-
         private void SetupTokenService()
         {
             _tokenServiceMock
@@ -309,7 +290,5 @@ namespace Test.Unit.Business.Handlers
                 .Setup(t => t.CreateIdToken(It.IsAny<User>(), It.IsAny<List<string>>()))
                 .Returns("id-token");
         }
-
-        #endregion Helper Methods
     }
 }

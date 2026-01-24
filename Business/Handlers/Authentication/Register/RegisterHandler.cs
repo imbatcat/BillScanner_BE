@@ -9,7 +9,7 @@ using System.Text;
 
 namespace Business.Handlers.Authentication.Register
 {
-    public class CommandHandler(
+    public class RegisterHandler(
         IUnitOfWork _unitOfWork,
         IUserTokenService _tokenService
     ) : IRequestHandler<RegisterCommand, RegisterResponse>

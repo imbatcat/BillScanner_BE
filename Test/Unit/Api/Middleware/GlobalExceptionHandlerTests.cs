@@ -30,7 +30,15 @@ namespace Test.Unit.Api.Middleware
             _httpContext.Response.Body = _responseBody;
 
             // Mock IHostEnvironment for Development/Production checks
-            //SetupEnvironment("Development");
+            var hostEnvironmentMock = new Mock<IHostEnvironment>();
+            hostEnvironmentMock.Setup(x => x.EnvironmentName).Returns("Development");
+
+            var serviceProviderMock = new Mock<IServiceProvider>();
+            serviceProviderMock
+                .Setup(x => x.GetService(typeof(IHostEnvironment)))
+                .Returns(hostEnvironmentMock.Object);
+
+            _httpContext.RequestServices = serviceProviderMock.Object;
         }
 
         #region Status Code Mapping Tests
