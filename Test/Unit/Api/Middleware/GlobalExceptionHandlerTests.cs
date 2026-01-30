@@ -11,23 +11,23 @@ namespace Test.Unit.Api.Middleware
 {
     public class GlobalExceptionHandlerTests : IDisposable
     {
-        private readonly Mock<ILogger<GlobalExceptionHandler>> _loggerMock;
+        private readonly Mock<ILogger<GlobalExceptionHandler>> loggerMock;
 
-        private readonly GlobalExceptionHandler _handler;
+        private readonly GlobalExceptionHandler handler;
 
-        private readonly DefaultHttpContext _httpContext;
+        private readonly DefaultHttpContext httpContext;
 
-        private readonly MemoryStream _responseBody;
+        private readonly MemoryStream responseBody;
 
         public GlobalExceptionHandlerTests()
         {
-            _loggerMock = new Mock<ILogger<GlobalExceptionHandler>>();
-            _handler = new GlobalExceptionHandler(_loggerMock.Object);
+            loggerMock = new Mock<ILogger<GlobalExceptionHandler>>();
+            handler = new GlobalExceptionHandler(loggerMock.Object);
 
             // Setup HttpContext with mocked services
-            _httpContext = new DefaultHttpContext();
-            _responseBody = new MemoryStream();
-            _httpContext.Response.Body = _responseBody;
+            httpContext = new DefaultHttpContext();
+            responseBody = new MemoryStream();
+            httpContext.Response.Body = responseBody;
 
             // Mock IHostEnvironment for Development/Production checks
             var hostEnvironmentMock = new Mock<IHostEnvironment>();
@@ -38,7 +38,7 @@ namespace Test.Unit.Api.Middleware
                 .Setup(x => x.GetService(typeof(IHostEnvironment)))
                 .Returns(hostEnvironmentMock.Object);
 
-            _httpContext.RequestServices = serviceProviderMock.Object;
+            httpContext.RequestServices = serviceProviderMock.Object;
         }
 
         #region Status Code Mapping Tests
@@ -58,15 +58,15 @@ namespace Test.Unit.Api.Middleware
             var exception = (Exception)Activator.CreateInstance(exceptionType, "Test message")!;
 
             // Act
-            var result = await _handler.TryHandleAsync(
-                _httpContext,
+            var result = await handler.TryHandleAsync(
+                httpContext,
                 exception,
                 CancellationToken.None);
 
             // Assert
             Assert.True(result, "Handler should return true (exception handled)");
-            Assert.Equal(expectedStatusCode, _httpContext.Response.StatusCode);
-            Assert.Contains("application/json", _httpContext.Response.ContentType);
+            Assert.Equal(expectedStatusCode, httpContext.Response.StatusCode);
+            Assert.Contains("application/json", httpContext.Response.ContentType);
         }
 
         [Theory]
@@ -83,14 +83,14 @@ namespace Test.Unit.Api.Middleware
             var exception = (Exception)Activator.CreateInstance(exceptionType, "DB error")!;
 
             // Act
-            var result = await _handler.TryHandleAsync(
-                _httpContext,
+            var result = await handler.TryHandleAsync(
+                httpContext,
                 exception,
                 CancellationToken.None);
 
             // Assert
             Assert.True(result);
-            Assert.Equal(expectedStatusCode, _httpContext.Response.StatusCode);
+            Assert.Equal(expectedStatusCode, httpContext.Response.StatusCode);
         }
 
         #endregion Status Code Mapping Tests
@@ -104,10 +104,10 @@ namespace Test.Unit.Api.Middleware
             var exception = new Exception("Test error");
 
             // Act
-            await _handler.TryHandleAsync(_httpContext, exception, CancellationToken.None);
+            await handler.TryHandleAsync(httpContext, exception, CancellationToken.None);
 
             // Assert - Verify initial LogError was called
-            _loggerMock.Verify(
+            loggerMock.Verify(
                 x => x.Log(
                     LogLevel.Error,
                     It.IsAny<EventId>(),
@@ -124,10 +124,10 @@ namespace Test.Unit.Api.Middleware
             var exception = new UnauthorizedAccessException("Unauthorized");
 
             // Act
-            await _handler.TryHandleAsync(_httpContext, exception, CancellationToken.None);
+            await handler.TryHandleAsync(httpContext, exception, CancellationToken.None);
 
             // Assert - Verify LogWarning was called
-            _loggerMock.Verify(
+            loggerMock.Verify(
                 x => x.Log(
                     LogLevel.Warning,
                     It.IsAny<EventId>(),
@@ -144,10 +144,10 @@ namespace Test.Unit.Api.Middleware
             var exception = new UniqueConstraintException("Duplicate");
 
             // Act
-            await _handler.TryHandleAsync(_httpContext, exception, CancellationToken.None);
+            await handler.TryHandleAsync(httpContext, exception, CancellationToken.None);
 
             // Assert
-            _loggerMock.Verify(
+            loggerMock.Verify(
                 x => x.Log(
                     LogLevel.Warning,
                     It.IsAny<EventId>(),
@@ -164,10 +164,10 @@ namespace Test.Unit.Api.Middleware
             var exception = new Exception("Unhandled error");
 
             // Act
-            await _handler.TryHandleAsync(_httpContext, exception, CancellationToken.None);
+            await handler.TryHandleAsync(httpContext, exception, CancellationToken.None);
 
             // Assert - Verify both initial and final LogError were called
-            _loggerMock.Verify(
+            loggerMock.Verify(
                 x => x.Log(
                     LogLevel.Error,
                     It.IsAny<EventId>(),
@@ -181,7 +181,7 @@ namespace Test.Unit.Api.Middleware
 
         public void Dispose()
         {
-            _responseBody?.Dispose();
+            responseBody?.Dispose();
         }
     }
 }

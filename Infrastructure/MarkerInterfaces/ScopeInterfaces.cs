@@ -1,7 +1,8 @@
-namespace Infrastructure.MarkerInterfaces;
+namespace Infrastructure.MarkerInterfaces
+{
+    public interface IScopedService;
 
-public interface IScopedService;
+    public interface ITransientService;
 
-public interface ITransientService;
-
-public interface ISingletonService;
+    public interface ISingletonService;
+}

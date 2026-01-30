@@ -5,9 +5,11 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using BillScanner.Controllers.Base;
 using Business.Handlers.Authentication.Login.Dto;
+using BillScanner.Models;
 using Domain.Entities;
 using FluentAssertions;
 using Test.Configuration;
+using Test.Integration.Business.Handlers.BaseTests;
 using Xunit.Abstractions;
 
 namespace Test.Integration.Business.Handlers.Authentication

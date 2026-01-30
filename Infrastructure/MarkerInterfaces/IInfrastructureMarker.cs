@@ -1,3 +1,4 @@
-namespace Infrastructure.MarkerInterfaces;
-
-public interface IInfrastructureMarker;
+namespace Infrastructure.MarkerInterfaces
+{
+    public interface IInfrastructureMarker;
+}

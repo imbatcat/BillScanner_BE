@@ -21,6 +21,7 @@
 		<PackageReference Include="Microsoft.Build.Tasks.Core" Version="18.0.2" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.2" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.2" />
+		<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.2" />
 		<PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.15.0" />
 		<PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.15.0" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.2" />
@@ -31,7 +32,7 @@
 
     <ItemGroup>
       <Folder Include="Handlers\Authentication\Login\Mapping\" />
-      <Folder Include="Handlers\Images\GetUploadStorageSignature\Dto\" />
+      <Folder Include="Handlers\Webhooks\" />
     </ItemGroup>
 
   </Project>

@@ -12,47 +12,49 @@ namespace Test.Unit.Infrastructure.Efcore.Interceptor
 {
     public sealed class TestContainerSqlExceptionHandlingTests(ITestOutputHelper outputHelper) : IAsyncLifetime
     {
-        private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
+        private readonly PostgreSqlContainer postgres = new PostgreSqlBuilder()
             .WithImage("postgres:15-alpine")
             .WithDatabase("billscanner_test")
             .WithUsername("test")
             .WithPassword("test")
             .Build();
-        private BillScannerDbContext? _dbContext;
 
-        private ILogger<SqlExceptionHandlingInterceptor>? _logger;
+        private BillScannerDbContext? dbContext;
+
+        private ILogger<SqlExceptionHandlingInterceptor>? logger;
 
         public async Task InitializeAsync()
         {
-            await _postgres.StartAsync();
+            await postgres.StartAsync();
 
             // Create logger that outputs to test console
-            _logger = XUnitLogger.CreateLogger<SqlExceptionHandlingInterceptor>(outputHelper);
+            logger = XUnitLogger.CreateLogger<SqlExceptionHandlingInterceptor>(outputHelper);
 
             // Create interceptor
-            var interceptor = new SqlExceptionHandlingInterceptor(_logger);
+            var interceptor = new SqlExceptionHandlingInterceptor(logger);
 
             // Configure DbContext with PostgreSQL and interceptor
             var options = new DbContextOptionsBuilder<BillScannerDbContext>()
-                .UseNpgsql(_postgres.GetConnectionString())
+                .UseNpgsql(postgres.GetConnectionString())
                 .AddInterceptors(interceptor)
                 .EnableSensitiveDataLogging()
                 .EnableDetailedErrors()
                 .Options;
 
-            _dbContext = new BillScannerDbContext(options);
+            dbContext = new BillScannerDbContext(options);
 
             // Create database schema
-            await _dbContext.Database.EnsureCreatedAsync();
+            await dbContext.Database.EnsureCreatedAsync();
         }
 
         public async Task DisposeAsync()
         {
-            if (_dbContext != null)
+            if (dbContext != null)
             {
-                await _dbContext.DisposeAsync();
+                await dbContext.DisposeAsync();
             }
-            await _postgres.DisposeAsync();
+
+            await postgres.DisposeAsync();
         }
 
         [Fact]
@@ -66,8 +68,8 @@ namespace Test.Unit.Infrastructure.Efcore.Interceptor
                 DisplayName = "User 1"
             };
 
-            _dbContext!.Set<User>().Add(user1);
-            await _dbContext.SaveChangesAsync();
+            dbContext!.Set<User>().Add(user1);
+            await dbContext.SaveChangesAsync();
 
             // Create second user with same email (violates unique constraint)
             var user2 = new User
@@ -77,11 +79,10 @@ namespace Test.Unit.Infrastructure.Efcore.Interceptor
                 DisplayName = "User 2"
             };
 
-            _dbContext.Set<User>().Add(user2);
+            dbContext.Set<User>().Add(user2);
 
             // Act & Assert
-            var exception = await Assert.ThrowsAsync<UniqueConstraintException>(
-                () => _dbContext.SaveChangesAsync());
+            var exception = await Assert.ThrowsAsync<UniqueConstraintException>(() => dbContext.SaveChangesAsync());
 
             // Verify exception details
             Assert.NotNull(exception);
@@ -102,8 +103,8 @@ namespace Test.Unit.Infrastructure.Efcore.Interceptor
                 DisplayName = "User 1"
             };
 
-            _dbContext!.Set<User>().Add(user1);
-            _dbContext.SaveChanges();
+            dbContext!.Set<User>().Add(user1);
+            dbContext.SaveChanges();
 
             // Create second user with same email (violates unique constraint)
             var user2 = new User
@@ -113,11 +114,10 @@ namespace Test.Unit.Infrastructure.Efcore.Interceptor
                 DisplayName = "User 2"
             };
 
-            _dbContext.Set<User>().Add(user2);
+            dbContext.Set<User>().Add(user2);
 
             // Act & Assert
-            var exception = Assert.Throws<UniqueConstraintException>(
-                () => _dbContext.SaveChanges());
+            var exception = Assert.Throws<UniqueConstraintException>(() => dbContext.SaveChanges());
 
             // Verify exception details
             Assert.NotNull(exception);
@@ -137,11 +137,10 @@ namespace Test.Unit.Infrastructure.Efcore.Interceptor
                 DisplayName = "Test User"
             };
 
-            _dbContext!.Set<User>().Add(user);
+            dbContext!.Set<User>().Add(user);
 
             // Act & Assert
-            var exception = await Assert.ThrowsAsync<CannotInsertNullException>(
-                () => _dbContext.SaveChangesAsync());
+            var exception = await Assert.ThrowsAsync<CannotInsertNullException>(() => dbContext.SaveChangesAsync());
 
             // Verify exception details
             Assert.NotNull(exception);
@@ -161,11 +160,10 @@ namespace Test.Unit.Infrastructure.Efcore.Interceptor
                 DisplayName = "Test User"
             };
 
-            _dbContext!.Set<User>().Add(user);
+            dbContext!.Set<User>().Add(user);
 
             // Act & Assert
-            var exception = await Assert.ThrowsAsync<MaxLengthExceededException>(
-                () => _dbContext.SaveChangesAsync());
+            var exception = await Assert.ThrowsAsync<MaxLengthExceededException>(() => dbContext.SaveChangesAsync());
 
             // Verify exception details
             Assert.NotNull(exception);
@@ -184,8 +182,8 @@ namespace Test.Unit.Infrastructure.Efcore.Interceptor
                 DisplayName = "Valid User"
             };
 
-            _dbContext!.Set<User>().Add(validUser);
-            await _dbContext.SaveChangesAsync();
+            dbContext!.Set<User>().Add(validUser);
+            await dbContext.SaveChangesAsync();
 
             // Test multiple different violations in sequence
             var violations = new List<(User User, Type ExpectedException)>
@@ -200,8 +198,8 @@ namespace Test.Unit.Infrastructure.Efcore.Interceptor
             {
                 // Create new context for each test to avoid state issues
                 var options = new DbContextOptionsBuilder<BillScannerDbContext>()
-                    .UseNpgsql(_postgres.GetConnectionString())
-                    .AddInterceptors(new SqlExceptionHandlingInterceptor(_logger!))
+                    .UseNpgsql(postgres.GetConnectionString())
+                    .AddInterceptors(new SqlExceptionHandlingInterceptor(logger!))
                     .Options;
 
                 await using var context = new BillScannerDbContext(options);
@@ -209,11 +207,11 @@ namespace Test.Unit.Infrastructure.Efcore.Interceptor
                 context.Set<User>().Add(user);
 
                 // Act & Assert
-                var exception = await Assert.ThrowsAnyAsync<Exception>(
-                    () => context.SaveChangesAsync());
+                var exception = await Assert.ThrowsAnyAsync<Exception>(() => context.SaveChangesAsync());
 
                 Assert.IsType(expectedExceptionType, exception);
-                outputHelper.WriteLine($"Violation {violations.IndexOf((user, expectedExceptionType)) + 1}: {exception.GetType().Name}");
+                outputHelper.WriteLine(
+                    $"Violation {violations.IndexOf((user, expectedExceptionType)) + 1}: {exception.GetType().Name}");
             }
         }
 
@@ -228,13 +226,13 @@ namespace Test.Unit.Infrastructure.Efcore.Interceptor
                 DisplayName = "Valid User"
             };
 
-            _dbContext!.Set<User>().Add(user);
+            dbContext!.Set<User>().Add(user);
 
             // Act
-            await _dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync();
 
             // Assert - verify user was saved
-            var savedUser = await _dbContext.Set<User>()
+            var savedUser = await dbContext.Set<User>()
                 .FirstOrDefaultAsync(u => u.Email == "valid.user@example.com");
 
             Assert.NotNull(savedUser);

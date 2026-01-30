@@ -11,12 +11,13 @@ namespace Infrastructure.Services.FileStorage.Cloudinary
         IOptions<CloudinarySettings> _configuration,
         CloudinaryDotNet.Cloudinary _cloudinary) : IFileStorageService, ISingletonService
     {
-        public Task<GetUploadStorageSignatureResponse> GetUploadStorageSignatureAsync()
+        public Task<GetUploadStorageSignatureResponse> GetUploadStorageSignatureAsync(bool isInvoice)
         {
             var timestamp = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
+            var folder = isInvoice ? $"{_configuration.Value.FolderName}/invoices" : _configuration.Value.FolderName;
             var parameters = new Dictionary<string, object>
             {
-                { "folder", _configuration.Value.FolderName },
+                { "folder", folder },
                 { "timestamp", timestamp }
             };
 

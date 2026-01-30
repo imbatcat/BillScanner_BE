@@ -16,8 +16,6 @@
 
         public decimal TotalPrice { get; set; }
 
-        public int ItemConfidence { get; set; }
-
         public Bill Bill { get; set; } = null!;
         public Item Item { get; set; }
     }

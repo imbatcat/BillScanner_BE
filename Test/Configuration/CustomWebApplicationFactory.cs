@@ -11,65 +11,76 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Npgsql;
 using Respawn;
+using StackExchange.Redis;
 using Testcontainers.PostgreSql;
+using Testcontainers.Redis;
 using Xunit.Abstractions;
 
 namespace Test.Configuration
 {
     public class CustomWebApplicationFactory : WebApplicationFactory<IApiMarker>, IAsyncLifetime
     {
-        private readonly PostgreSqlContainer _dbContainer = new PostgreSqlBuilder("postgres:18.1-alpine3.23")
+        private readonly PostgreSqlContainer dbContainer = new PostgreSqlBuilder("postgres:18.1-alpine3.23")
             .WithDatabase("billscanner_test")
             .WithUsername("test")
             .WithPassword("test")
             .Build();
 
+        private readonly RedisContainer redisContainer = new RedisBuilder("redis:7.4.2-alpine")
+            .Build();
+
         public HttpClient HttpClient { get; private set; } = null!;
 
-        private Respawner _respawner = null!;
+        public IConnectionMultiplexer RedisConnection { get; private set; } = null!;
+
+        private Respawner respawner = null!;
 
         // private readonly IMessageSink _messageSink = messageSink;
         public ITestOutputHelper? Output { get; set; } = null!;
 
-        private ILogger<SqlExceptionHandlingInterceptor>? _logger;
+        private ILogger<SqlExceptionHandlingInterceptor>? logger;
 
-        private BillScannerDbContext? _dbContext;
+        private BillScannerDbContext? dbContext;
 
-        private DbConnection _dbConnection = null!;
+        private DbConnection dbConnection = null!;
 
         public async Task InitializeAsync()
         {
-            await _dbContainer.StartAsync();
+            await dbContainer.StartAsync();
+            await redisContainer.StartAsync();
 
             HttpClient = CreateClient();
 
+            // Initialize Redis connection
+            RedisConnection = await ConnectionMultiplexer.ConnectAsync(redisContainer.GetConnectionString());
+
             // Use NullLogger during initialization phase
-            _logger = NullLogger<SqlExceptionHandlingInterceptor>.Instance;
+            logger = NullLogger<SqlExceptionHandlingInterceptor>.Instance;
 
             // Create interceptor
-            var interceptor = new SqlExceptionHandlingInterceptor(_logger);
+            var interceptor = new SqlExceptionHandlingInterceptor(logger);
 
             // Configure DbContext with PostgreSQL and interceptor
             var options = new DbContextOptionsBuilder<BillScannerDbContext>()
-                .UseNpgsql(_dbContainer.GetConnectionString())
+                .UseNpgsql(dbContainer.GetConnectionString())
                 .AddInterceptors(interceptor)
                 .EnableSensitiveDataLogging()
                 .EnableDetailedErrors()
                 .Options;
 
-            _dbContext = new BillScannerDbContext(options);
+            dbContext = new BillScannerDbContext(options);
 
             // Create database schema
-            await _dbContext.Database.EnsureCreatedAsync();
+            await dbContext.Database.EnsureCreatedAsync();
 
-            _dbConnection = new NpgsqlConnection(_dbContainer.GetConnectionString());
-            await _dbConnection.OpenAsync();
+            dbConnection = new NpgsqlConnection(dbContainer.GetConnectionString());
+            await dbConnection.OpenAsync();
             await InitializeRespawnerAsync();
         }
 
         private async Task InitializeRespawnerAsync()
         {
-            _respawner = await Respawner.CreateAsync(_dbConnection, new RespawnerOptions
+            respawner = await Respawner.CreateAsync(dbConnection, new RespawnerOptions
             {
                 SchemasToInclude = ["public"],
                 DbAdapter = DbAdapter.Postgres
@@ -78,18 +89,27 @@ namespace Test.Configuration
 
         public new async Task DisposeAsync()
         {
-            await _dbConnection.DisposeAsync();
-            await _dbContainer.DisposeAsync();
+            await dbConnection.DisposeAsync();
+            RedisConnection?.Dispose();
+            await dbContainer.DisposeAsync();
+            await redisContainer.DisposeAsync();
         }
 
         public async Task ResetDatabaseAsync()
         {
-            await _respawner.ResetAsync(_dbConnection);
+            await respawner.ResetAsync(dbConnection);
+        }
+
+        public async Task ResetRedisAsync()
+        {
+            var server = RedisConnection.GetServer(RedisConnection.GetEndPoints().First());
+            await server.FlushAllDatabasesAsync();
         }
 
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
-            builder.UseSetting("ConnectionStrings:BillScannerDb", _dbContainer.GetConnectionString());
+            builder.UseSetting("ConnectionStrings:BillScannerDb", dbContainer.GetConnectionString());
+            builder.UseSetting("ConnectionStrings:Redis", redisContainer.GetConnectionString());
 
             builder.ConfigureLogging(logging =>
             {

@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 using Test.Configuration;
 using Xunit.Abstractions;
 
-namespace Test.Integration.Business.Handlers
+namespace Test.Integration.Business.Handlers.BaseTests
 {
     [Collection("BillScannerTestCollection")]
     public abstract class BaseTest :
@@ -12,7 +12,9 @@ namespace Test.Integration.Business.Handlers
         protected readonly CustomWebApplicationFactory Factory;
         protected readonly HttpClient Client;
 
-        public BaseTest(CustomWebApplicationFactory factory, ITestOutputHelper outputHelper)
+        protected readonly JsonSerializerOptions JsonSerializerOptions;
+
+        protected BaseTest(CustomWebApplicationFactory factory, ITestOutputHelper outputHelper)
         {
             Factory = factory;
             Factory.Output = outputHelper;
@@ -24,15 +26,14 @@ namespace Test.Integration.Business.Handlers
             };
         }
 
-        protected readonly JsonSerializerOptions JsonSerializerOptions;
 
-        public async Task DisposeAsync()
+        public virtual async Task DisposeAsync()
         {
             Factory.Output = null; // Cleanup for the next test
             await Task.CompletedTask;
         }
 
-        public async Task InitializeAsync()
+        public virtual async Task InitializeAsync()
         {
             await Factory.ResetDatabaseAsync();
         }

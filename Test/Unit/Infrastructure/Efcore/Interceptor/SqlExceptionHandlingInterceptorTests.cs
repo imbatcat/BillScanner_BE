@@ -14,26 +14,26 @@ namespace Test.Infrastructure.Efcore.Interceptor
 {
     public class SqlExceptionHandlingInterceptorTests : IDisposable
     {
-        private readonly DbConnection _dbConnection;
+        private readonly DbConnection dbConnection;
 
-        private readonly ILogger<SqliteExceptionHandlingInterceptor> _logger;
+        private readonly ILogger<SqliteExceptionHandlingInterceptor> logger;
 
-        private readonly SqliteExceptionHandlingInterceptor _interceptor;
+        private readonly SqliteExceptionHandlingInterceptor interceptor;
 
         public SqlExceptionHandlingInterceptorTests(ITestOutputHelper outputHelper)
         {
-            _dbConnection = new SqliteConnection("DataSource=:memory:");
-            _dbConnection.Open();
+            dbConnection = new SqliteConnection("DataSource=:memory:");
+            dbConnection.Open();
 
-            _logger = XUnitLogger.CreateLogger<SqliteExceptionHandlingInterceptor>(outputHelper);
-            _interceptor = new SqliteExceptionHandlingInterceptor(_logger);
+            logger = XUnitLogger.CreateLogger<SqliteExceptionHandlingInterceptor>(outputHelper);
+            interceptor = new SqliteExceptionHandlingInterceptor(logger);
         }
 
         [Fact]
         public void SaveChangesFailed_WithUniqueConstraintException_LogsErrorAndThrowsException()
         {
             // Arrange
-            var dbContext = CreateBillScannerDbContext(_dbConnection, _interceptor);
+            var dbContext = CreateBillScannerDbContext(dbConnection, interceptor);
 
             var user1 = new User
             {
@@ -82,7 +82,7 @@ namespace Test.Infrastructure.Efcore.Interceptor
 
         public void Dispose()
         {
-            _dbConnection.Close();
+            dbConnection.Close();
             GC.SuppressFinalize(this);
         }
     }
@@ -91,7 +91,7 @@ namespace Test.Infrastructure.Efcore.Interceptor
     /// Converts SQLite exceptions to typed exceptions AND logs them (for testing)
     /// </summary>
     public partial class SqliteExceptionHandlingInterceptor(
-        ILogger<SqliteExceptionHandlingInterceptor> _logger) : ExceptionProcessorInterceptor<SqliteException>
+        ILogger<SqliteExceptionHandlingInterceptor> logger) : ExceptionProcessorInterceptor<SqliteException>
     {
         // SQLite error codes
         private const int SQLITE_CONSTRAINT = 19;

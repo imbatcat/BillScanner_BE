@@ -1,6 +1,6 @@
-namespace Business.Handlers.Authentication.Login.Dto
+namespace BillScanner.Models
 {
-    public record LoginRequest
+    public record LoginModel
     {
         public string Email { get; init; } = null!;
         public string Password { get; init; } = null!;

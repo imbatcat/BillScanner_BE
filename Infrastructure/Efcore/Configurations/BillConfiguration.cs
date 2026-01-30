@@ -33,7 +33,6 @@ namespace Infrastructure.Efcore.Configurations
             builder.Property(e => e.BillDate)
                 .IsRequired();
 
-            builder.Property(e => e.ConfidenceScore);
 
             builder.Property(e => e.Status)
                 .IsRequired()

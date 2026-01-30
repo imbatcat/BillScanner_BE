@@ -32,9 +32,6 @@ namespace Infrastructure.Efcore.Configurations
                 .HasPrecision(15, 2)
                 .IsRequired();
 
-            builder.Property(e => e.ItemConfidence)
-                .IsRequired();
-
             builder.HasOne(e => e.Item)
                 .WithMany()
                 .HasForeignKey(e => e.ItemId)

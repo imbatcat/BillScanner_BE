@@ -5,13 +5,13 @@ using MediatR;
 namespace Business.Handlers.Images.GetUploadStorageSignature
 {
     public class QueryHandler(
-        IFileStorageService fileStorageService
+        IFileStorageService _fileStorageService
     ) : IRequestHandler<GetUploadStorageSignatureRequest, GetUploadStorageSignatureResponse>
     {
-        public Task<GetUploadStorageSignatureResponse> Handle(GetUploadStorageSignatureRequest request,
+        public async Task<GetUploadStorageSignatureResponse> Handle(GetUploadStorageSignatureRequest request,
             CancellationToken cancellationToken)
         {
-            return fileStorageService.GetUploadStorageSignatureAsync();
+            return await _fileStorageService.GetUploadStorageSignatureAsync(request.IsInvoice);
         }
     }
 }

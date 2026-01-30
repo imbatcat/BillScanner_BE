@@ -9,13 +9,13 @@ namespace Infrastructure.Repositories
 {
     internal class GenericRepository<T>(DbContext context) : IGenericRepository<T> where T : BaseEntity
     {
-        protected readonly DbContext _context = context;
+        protected readonly DbContext context = context;
 
-        protected readonly DbSet<T> _dbSet = context.Set<T>();
+        protected readonly DbSet<T> dbSet = context.Set<T>();
 
         public virtual async Task<T?> GetByIdAsync(Guid id, bool asNoTracking = true, List<string>? includes = null)
         {
-            IQueryable<T> query = _dbSet;
+            IQueryable<T> query = dbSet;
 
             if (includes != null)
             {
@@ -33,7 +33,8 @@ namespace Infrastructure.Repositories
             return await query.FirstOrDefaultAsync(e => e.Id == id);
         }
 
-        public virtual async Task<IReadOnlyList<T>> GetAllWithSpecificationAsync(ISpecification<T> specification, bool asNoTracking = true)
+        public virtual async Task<IReadOnlyList<T>> GetAllWithSpecificationAsync(ISpecification<T> specification,
+            bool asNoTracking = true)
         {
             var query = ApplySpecification(specification, asNoTracking);
             return await query.ToListAsync();
@@ -57,7 +58,8 @@ namespace Infrastructure.Repositories
             return await query.AnyAsync();
         }
 
-        public virtual async Task<TDto?> GetBySpecificationProjectedAsync<TDto>(ISpecification<T> specification, IConfigurationProvider mapperConfig)
+        public virtual async Task<TDto?> GetBySpecificationProjectedAsync<TDto>(ISpecification<T> specification,
+            IConfigurationProvider mapperConfig)
         {
             var query = ApplySpecification(specification, true);
             return await query.ProjectTo<TDto>(mapperConfig).FirstOrDefaultAsync();
@@ -65,13 +67,14 @@ namespace Infrastructure.Repositories
 
         public virtual async Task<TDto?> GetByIdProjectedAsync<TDto>(Guid id, IConfigurationProvider mapperConfig)
         {
-            return await _dbSet
+            return await dbSet
                 .Where(e => e.Id == id)
                 .ProjectTo<TDto>(mapperConfig)
                 .FirstOrDefaultAsync();
         }
 
-        public virtual async Task<IReadOnlyList<TDto>> GetAllWithSpecificationProjectedAsync<TDto>(ISpecification<T> specification, IConfigurationProvider mapperConfig)
+        public virtual async Task<IReadOnlyList<TDto>> GetAllWithSpecificationProjectedAsync<TDto>(
+            ISpecification<T> specification, IConfigurationProvider mapperConfig)
         {
             var query = ApplySpecification(specification, true);
             return await query.ProjectTo<TDto>(mapperConfig).ToListAsync();
@@ -79,42 +82,45 @@ namespace Infrastructure.Repositories
 
         public virtual T Insert(T entity)
         {
-            _dbSet.Add(entity);
+            dbSet.Add(entity);
             return entity;
         }
 
         public virtual void InsertRange(List<T> entities)
         {
-            _dbSet.AddRange(entities);
+            dbSet.AddRange(entities);
         }
 
         public virtual T? Update(T entityToUpdate)
         {
-            if (_context.Entry(entityToUpdate).State == EntityState.Detached)
+            if (context.Entry(entityToUpdate).State == EntityState.Detached)
             {
-                _dbSet.Attach(entityToUpdate);
+                dbSet.Attach(entityToUpdate);
             }
-            _context.Entry(entityToUpdate).State = EntityState.Modified;
+
+            context.Entry(entityToUpdate).State = EntityState.Modified;
             return entityToUpdate;
         }
 
         public virtual T? Delete(T entityToDelete)
         {
-            if (_context.Entry(entityToDelete).State == EntityState.Detached)
+            if (context.Entry(entityToDelete).State == EntityState.Detached)
             {
-                _dbSet.Attach(entityToDelete);
+                dbSet.Attach(entityToDelete);
             }
-            _dbSet.Remove(entityToDelete);
+
+            dbSet.Remove(entityToDelete);
             return entityToDelete;
         }
 
         public virtual T? Delete(object id)
         {
-            var entityToDelete = _dbSet.Find(id);
+            var entityToDelete = dbSet.Find(id);
             if (entityToDelete != null)
             {
                 Delete(entityToDelete);
             }
+
             return entityToDelete;
         }
 
@@ -125,17 +131,18 @@ namespace Infrastructure.Repositories
 
         public virtual T? SoftDelete(object id)
         {
-            var entityToDelete = _dbSet.Find(id);
+            var entityToDelete = dbSet.Find(id);
             if (entityToDelete != null)
             {
                 return SoftDelete(entityToDelete);
             }
+
             return entityToDelete;
         }
 
         private IQueryable<T> ApplySpecification(ISpecification<T> specification, bool asNoTracking)
         {
-            var query = SpecificationEvaluator<T>.GetQuery(_dbSet.AsQueryable(), specification);
+            var query = SpecificationEvaluator<T>.GetQuery(dbSet.AsQueryable(), specification);
 
             if (asNoTracking)
             {

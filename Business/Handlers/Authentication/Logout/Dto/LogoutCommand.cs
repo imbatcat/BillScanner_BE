@@ -1,6 +1,6 @@
 using MediatR;
 
-namespace Business.Handlers.Authentication.Logout
+namespace Business.Handlers.Authentication.Logout.Dto
 {
     public record LogoutCommand : IRequest<Unit>
     {

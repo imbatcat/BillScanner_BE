@@ -1,4 +1,5 @@
 ﻿using Business.Handlers.Authentication.Register;
+using Business.Handlers.Authentication.Register.Dto;
 using Business.Handlers.Authentication.Register.Spec;
 using Business.Interfaces.Repositories;
 using Business.Interfaces.Services;
@@ -18,59 +19,63 @@ namespace Test.Unit.Business.Handlers
 {
     public class RegisterHandlerTests : IAsyncLifetime
     {
-        private readonly PostgreSqlContainer _dbContainer = new PostgreSqlBuilder()
+        private readonly PostgreSqlContainer dbContainer = new PostgreSqlBuilder()
             .WithImage("postgres:18.1-alpine3.23")
             .WithDatabase("billscanner_test")
             .WithUsername("test")
             .WithPassword("test")
             .Build();
 
-        private readonly ITestOutputHelper _output;
-        private readonly Mock<IUserTokenService> _tokenServiceMock;
+        private readonly ITestOutputHelper output;
 
-        private BillScannerDbContext _dbContext = null!;
-        private UnitOfWork _unitOfWork = null!;
-        private RegisterHandler _handler = null!;
-        private ILoggerFactory _loggerFactory = null!;
+        private readonly Mock<IUserTokenService> tokenServiceMock;
+
+        private BillScannerDbContext dbContext = null!;
+
+        private UnitOfWork unitOfWork = null!;
+
+        private RegisterHandler handler = null!;
+
+        private ILoggerFactory loggerFactory = null!;
 
         public RegisterHandlerTests(ITestOutputHelper output)
         {
-            _output = output;
-            _tokenServiceMock = new Mock<IUserTokenService>();
+            this.output = output;
+            tokenServiceMock = new Mock<IUserTokenService>();
         }
 
         public async Task InitializeAsync()
         {
             // Start the container
-            await _dbContainer.StartAsync();
+            await dbContainer.StartAsync();
 
             // Setup Logging
-            _loggerFactory = LoggerFactory.Create(builder =>
+            loggerFactory = LoggerFactory.Create(builder =>
             {
                 builder.SetMinimumLevel(LogLevel.Debug);
-                builder.AddProvider(new XUnitLoggerProvider(_output));
+                builder.AddProvider(new XUnitLoggerProvider(output));
             });
 
-            var interceptorLogger = _loggerFactory.CreateLogger<SqlExceptionHandlingInterceptor>();
+            var interceptorLogger = loggerFactory.CreateLogger<SqlExceptionHandlingInterceptor>();
 
             // Setup DbContext
             var options = new DbContextOptionsBuilder<BillScannerDbContext>()
-                .UseNpgsql(_dbContainer.GetConnectionString())
+                .UseNpgsql(dbContainer.GetConnectionString())
                 .AddInterceptors(new SqlExceptionHandlingInterceptor(interceptorLogger))
                 .EnableSensitiveDataLogging()
                 .EnableDetailedErrors()
                 .Options;
 
-            _dbContext = new BillScannerDbContext(options);
-            await _dbContext.Database.EnsureCreatedAsync();
+            dbContext = new BillScannerDbContext(options);
+            await dbContext.Database.EnsureCreatedAsync();
 
             // Setup UnitOfWork
-            _unitOfWork = new UnitOfWork(_dbContext);
+            unitOfWork = new UnitOfWork(dbContext);
 
             // Setup Handler
-            _handler = new RegisterHandler(
-                _unitOfWork,
-                _tokenServiceMock.Object);
+            handler = new RegisterHandler(
+                unitOfWork,
+                tokenServiceMock.Object);
 
             // Default Token Service Mocks
             SetupTokenService();
@@ -78,9 +83,9 @@ namespace Test.Unit.Business.Handlers
 
         public async Task DisposeAsync()
         {
-            await _dbContext.DisposeAsync();
-            await _dbContainer.DisposeAsync();
-            _loggerFactory.Dispose();
+            await dbContext.DisposeAsync();
+            await dbContainer.DisposeAsync();
+            loggerFactory.Dispose();
         }
 
         [Fact]
@@ -95,7 +100,7 @@ namespace Test.Unit.Business.Handlers
             };
 
             // Act
-            var result = await _handler.Handle(command, CancellationToken.None);
+            var result = await handler.Handle(command, CancellationToken.None);
 
             // Assert
             Assert.NotNull(result);
@@ -104,7 +109,7 @@ namespace Test.Unit.Business.Handlers
             Assert.Equal("access-token", result.AccessToken);
             Assert.NotEqual(Guid.Empty, result.UserId);
 
-            var userInDb = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == command.Email);
+            var userInDb = await dbContext.Users.FirstOrDefaultAsync(u => u.Email == command.Email);
             Assert.NotNull(userInDb);
             Assert.Equal("New User", userInDb.DisplayName);
         }
@@ -121,13 +126,13 @@ namespace Test.Unit.Business.Handlers
             };
 
             // Act
-            var result = await _handler.Handle(command, CancellationToken.None);
+            var result = await handler.Handle(command, CancellationToken.None);
 
             // Assert
             Assert.NotNull(result);
             Assert.Equal("testuser", result.DisplayName);
 
-            var userInDb = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == command.Email);
+            var userInDb = await dbContext.Users.FirstOrDefaultAsync(u => u.Email == command.Email);
             Assert.NotNull(userInDb);
             Assert.Equal("testuser", userInDb.DisplayName);
         }
@@ -144,8 +149,8 @@ namespace Test.Unit.Business.Handlers
                 DisplayName = "Existing"
             };
 
-            _dbContext.Users.Add(existingUser);
-            await _dbContext.SaveChangesAsync();
+            dbContext.Users.Add(existingUser);
+            await dbContext.SaveChangesAsync();
 
             var command = new RegisterCommand
             {
@@ -156,7 +161,7 @@ namespace Test.Unit.Business.Handlers
             // Act & Assert
             var exception =
                 await Assert.ThrowsAsync<UniqueConstraintException>(() =>
-                    _handler.Handle(command, CancellationToken.None));
+                    handler.Handle(command, CancellationToken.None));
 
             Assert.NotNull(exception);
         }
@@ -173,10 +178,10 @@ namespace Test.Unit.Business.Handlers
             };
 
             // Act
-            await _handler.Handle(command, CancellationToken.None);
+            await handler.Handle(command, CancellationToken.None);
 
             // Assert
-            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == command.Email);
+            var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Email == command.Email);
             Assert.NotNull(user);
         }
 
@@ -192,10 +197,10 @@ namespace Test.Unit.Business.Handlers
             };
 
             // Act
-            await _handler.Handle(command, CancellationToken.None);
+            await handler.Handle(command, CancellationToken.None);
 
             // Assert
-            var count = await _dbContext.Users.CountAsync(u => u.Email == command.Email);
+            var count = await dbContext.Users.CountAsync(u => u.Email == command.Email);
             Assert.Equal(1, count);
         }
 
@@ -212,10 +217,10 @@ namespace Test.Unit.Business.Handlers
             };
 
             // Act
-            await _handler.Handle(command, CancellationToken.None);
+            await handler.Handle(command, CancellationToken.None);
 
             // Assert
-            var user = await _dbContext.Users.FirstAsync(u => u.Email == command.Email);
+            var user = await dbContext.Users.FirstAsync(u => u.Email == command.Email);
             Assert.NotEqual(password, user.Password);
             Assert.False(string.IsNullOrEmpty(user.Password));
         }
@@ -232,16 +237,16 @@ namespace Test.Unit.Business.Handlers
             };
 
             // Act
-            await _handler.Handle(command, CancellationToken.None);
+            await handler.Handle(command, CancellationToken.None);
 
             // Assert
-            _tokenServiceMock.Verify(
+            tokenServiceMock.Verify(
                 t => t.CreateAccessToken(
                     It.IsAny<User>(),
                     It.Is<List<string>>(roles => roles.Contains("User"))),
                 Times.Once);
 
-            _tokenServiceMock.Verify(
+            tokenServiceMock.Verify(
                 t => t.CreateIdToken(
                     It.IsAny<User>(),
                     It.Is<List<string>>(roles => roles.Contains("User"))),
@@ -260,33 +265,33 @@ namespace Test.Unit.Business.Handlers
             };
 
             // Act
-            await _handler.Handle(command, CancellationToken.None);
+            await handler.Handle(command, CancellationToken.None);
 
             // Assert
-            _tokenServiceMock.Verify(
+            tokenServiceMock.Verify(
                 t => t.CreateAccessToken(It.IsAny<User>(), It.IsAny<List<string>>()),
                 Times.Once);
 
-            _tokenServiceMock.Verify(
+            tokenServiceMock.Verify(
                 t => t.CreateRefreshToken(It.IsAny<User>()),
                 Times.Once);
 
-            _tokenServiceMock.Verify(
+            tokenServiceMock.Verify(
                 t => t.CreateIdToken(It.IsAny<User>(), It.IsAny<List<string>>()),
                 Times.Once);
         }
 
         private void SetupTokenService()
         {
-            _tokenServiceMock
+            tokenServiceMock
                 .Setup(t => t.CreateAccessToken(It.IsAny<User>(), It.IsAny<List<string>>()))
                 .Returns("access-token");
 
-            _tokenServiceMock
+            tokenServiceMock
                 .Setup(t => t.CreateRefreshToken(It.IsAny<User>()))
                 .Returns("refresh-token");
 
-            _tokenServiceMock
+            tokenServiceMock
                 .Setup(t => t.CreateIdToken(It.IsAny<User>(), It.IsAny<List<string>>()))
                 .Returns("id-token");
         }

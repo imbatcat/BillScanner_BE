@@ -401,3 +401,4 @@ FodyWeavers.xsd
 *.sln.iml
 BillScanner/appsettings.Development.json
 BillScanner/appsettings.json
+/Infrastructure/Migrations

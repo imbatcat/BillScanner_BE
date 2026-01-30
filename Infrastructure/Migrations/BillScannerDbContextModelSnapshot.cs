@@ -31,9 +31,6 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime>("BillDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int?>("ConfidenceScore")
-                        .HasColumnType("integer");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -78,6 +75,75 @@ namespace Infrastructure.Migrations
                     b.ToTable("bills", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.Entities.BillExtractionResult", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal?>("BillDateConfidence")
+                        .HasPrecision(5, 4)
+                        .HasColumnType("numeric(5,4)");
+
+                    b.Property<Guid>("BillId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal?>("CurrencyConfidence")
+                        .HasPrecision(5, 4)
+                        .HasColumnType("numeric(5,4)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("ExtractedBillDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ExtractedCurrency")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("ExtractedMerchantName")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<decimal?>("ExtractedTotalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<bool?>("IsBillDateCorrect")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool?>("IsCurrencyCorrect")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool?>("IsMerchantNameCorrect")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool?>("IsTotalAmountCorrect")
+                        .HasColumnType("boolean");
+
+                    b.Property<decimal?>("MerchantNameConfidence")
+                        .HasPrecision(5, 4)
+                        .HasColumnType("numeric(5,4)");
+
+                    b.Property<decimal?>("TotalAmountConfidence")
+                        .HasPrecision(5, 4)
+                        .HasColumnType("numeric(5,4)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BillId")
+                        .IsUnique();
+
+                    b.ToTable("bill_extraction_results", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Entities.BillItem", b =>
                 {
                     b.Property<Guid>("Id")
@@ -95,9 +161,6 @@ namespace Infrastructure.Migrations
 
                     b.Property<string>("Description")
                         .HasColumnType("text");
-
-                    b.Property<int>("ItemConfidence")
-                        .HasColumnType("integer");
 
                     b.Property<Guid>("ItemId")
                         .HasColumnType("uuid");
@@ -131,6 +194,75 @@ namespace Infrastructure.Migrations
                     b.HasIndex("ItemId");
 
                     b.ToTable("bill_items", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Entities.BillItemExtractionResult", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BillExtractionResultId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ExtractedItemName")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<decimal?>("ExtractedQuantity")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal?>("ExtractedTotalPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal?>("ExtractedUnitPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<bool?>("IsItemNameCorrect")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool?>("IsQuantityCorrect")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool?>("IsTotalPriceCorrect")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool?>("IsUnitPriceCorrect")
+                        .HasColumnType("boolean");
+
+                    b.Property<decimal?>("ItemNameConfidence")
+                        .HasPrecision(5, 4)
+                        .HasColumnType("numeric(5,4)");
+
+                    b.Property<decimal?>("QuantityConfidence")
+                        .HasPrecision(5, 4)
+                        .HasColumnType("numeric(5,4)");
+
+                    b.Property<decimal?>("TotalPriceConfidence")
+                        .HasPrecision(5, 4)
+                        .HasColumnType("numeric(5,4)");
+
+                    b.Property<decimal?>("UnitPriceConfidence")
+                        .HasPrecision(5, 4)
+                        .HasColumnType("numeric(5,4)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BillExtractionResultId");
+
+                    b.ToTable("bill_item_extraction_results", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Category", b =>
@@ -337,6 +469,17 @@ namespace Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Domain.Entities.BillExtractionResult", b =>
+                {
+                    b.HasOne("Domain.Entities.Bill", "Bill")
+                        .WithOne()
+                        .HasForeignKey("Domain.Entities.BillExtractionResult", "BillId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Bill");
+                });
+
             modelBuilder.Entity("Domain.Entities.BillItem", b =>
                 {
                     b.HasOne("Domain.Entities.Bill", "Bill")
@@ -354,6 +497,17 @@ namespace Infrastructure.Migrations
                     b.Navigation("Bill");
 
                     b.Navigation("Item");
+                });
+
+            modelBuilder.Entity("Domain.Entities.BillItemExtractionResult", b =>
+                {
+                    b.HasOne("Domain.Entities.BillExtractionResult", "BillExtractionResult")
+                        .WithMany("BillItemExtractionResults")
+                        .HasForeignKey("BillExtractionResultId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("BillExtractionResult");
                 });
 
             modelBuilder.Entity("Domain.Entities.Item", b =>
@@ -394,6 +548,11 @@ namespace Infrastructure.Migrations
                     b.Navigation("BillItems");
 
                     b.Navigation("PaymentMethods");
+                });
+
+            modelBuilder.Entity("Domain.Entities.BillExtractionResult", b =>
+                {
+                    b.Navigation("BillItemExtractionResults");
                 });
 
             modelBuilder.Entity("Domain.Entities.Category", b =>

@@ -8,10 +8,13 @@ namespace Infrastructure.Efcore.Persistence
         DbContextOptions<BillScannerDbContext> options) : DbContext(options)
     {
         public DbSet<User> Users => Set<User>();
+
         public DbSet<Bill> Bills => Set<Bill>();
+
         public DbSet<BillItem> BillItems => Set<BillItem>();
+
         public DbSet<PaymentMethod> PaymentMethods => Set<PaymentMethod>();
-        
+
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             UpdateTimestamps();
@@ -51,11 +54,6 @@ namespace Infrastructure.Efcore.Persistence
             ApplyBaseEntityConfigurationToDerivedClass(modelBuilder);
 
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(BillScannerDbContext).Assembly);
-        }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            // Exception processing is now handled by SqlExceptionHandlingInterceptor
         }
 
         /// <summary>

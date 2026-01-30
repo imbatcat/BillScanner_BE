@@ -9,21 +9,21 @@ namespace Test.Unit.Business.Handlers.Images;
 
 public class GetUploadStorageSignatureHandlerTests
 {
-    private readonly Mock<IFileStorageService> _fileStorageServiceMock;
+    private readonly Mock<IFileStorageService> fileStorageServiceMock;
 
-    private readonly QueryHandler _handler;
+    private readonly QueryHandler handler;
 
     public GetUploadStorageSignatureHandlerTests()
     {
-        _fileStorageServiceMock = new Mock<IFileStorageService>();
-        _handler = new QueryHandler(_fileStorageServiceMock.Object);
+        fileStorageServiceMock = new Mock<IFileStorageService>();
+        handler = new QueryHandler(fileStorageServiceMock.Object);
     }
 
     [Fact]
     public async Task Handle_ShouldReturnSignature_WhenServiceReturnsSuccess()
     {
         // Arrange
-        var request = new global::Business.Handlers.Images.GetUploadStorageSignature.GetUploadStorageSignatureRequest();
+        var request = new GetUploadStorageSignatureRequest(true);
         var expectedResponse = new GetUploadStorageSignatureResponse(
             Signature: "test-signature",
             Timestamp: 123456789,
@@ -31,16 +31,16 @@ public class GetUploadStorageSignatureHandlerTests
             CloudName: "test-cloud-name"
         );
 
-        _fileStorageServiceMock
-            .Setup(x => x.GetUploadStorageSignatureAsync())
+        fileStorageServiceMock
+            .Setup(x => x.GetUploadStorageSignatureAsync(request.IsInvoice))
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _handler.Handle(request, CancellationToken.None);
+        var result = await handler.Handle(request, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
         result.Should().BeEquivalentTo(expectedResponse);
-        _fileStorageServiceMock.Verify(x => x.GetUploadStorageSignatureAsync(), Times.Once);
+        fileStorageServiceMock.Verify(x => x.GetUploadStorageSignatureAsync(request.IsInvoice), Times.Once);
     }
 }

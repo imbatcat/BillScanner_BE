@@ -8,6 +8,11 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using StackExchange.Redis;
+using Infrastructure.Services.Caching.Redis;
+using Azure.AI.DocumentIntelligence;
+using Infrastructure.Services.ImageProcessing;
+using Azure;
 
 namespace Infrastructure.Extension
 {
@@ -58,6 +63,13 @@ namespace Infrastructure.Extension
                 .AsImplementedInterfaces()
                 .WithSingletonLifetime());
 
+            services.AddSingleton<IConnectionMultiplexer>(sp =>
+            {
+                var settings = sp.GetRequiredService<IOptions<RedisSettings>>();
+                ArgumentException.ThrowIfNullOrEmpty(settings.Value.ConnectionString);
+                return ConnectionMultiplexer.Connect(settings.Value.ConnectionString);
+            });
+
             services.AddSingleton(sp =>
             {
                 var settings = sp.GetRequiredService<IOptions<CloudinarySettings>>();
@@ -68,6 +80,13 @@ namespace Infrastructure.Extension
                 );
                 return new Cloudinary(account);
             });
+
+            services.AddSingleton(sp =>
+            {
+                var settings = sp.GetRequiredService<IOptions<AzureImageSettings>>().Value;
+                var credential = new AzureKeyCredential(settings.ApiKey1);
+                return new DocumentIntelligenceClient(new Uri(settings.Endpoint), credential);
+            });
         }
 
         public static void AddSettings(
@@ -75,6 +94,7 @@ namespace Infrastructure.Extension
             IConfiguration configuration)
         {
             services.Configure<CloudinarySettings>(configuration.GetSection("CloudinarySettings"));
+
             // Find all classes implementing IAppSettings
             var settingsTypes = typeof(IInfrastructureMarker).Assembly
                 .GetTypes()

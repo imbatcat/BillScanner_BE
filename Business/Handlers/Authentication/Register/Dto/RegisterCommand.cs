@@ -1,7 +1,6 @@
-using Business.Handlers.Authentication.Register.Dto;
 using MediatR;
 
-namespace Business.Handlers.Authentication.Register
+namespace Business.Handlers.Authentication.Register.Dto
 {
     public record RegisterCommand : IRequest<RegisterResponse>
     {

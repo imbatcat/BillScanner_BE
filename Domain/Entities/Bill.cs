@@ -14,8 +14,6 @@
 
         public DateTime BillDate { get; set; }
 
-        public int? ConfidenceScore { get; set; }
-
         public BillStatus Status { get; set; } = BillStatus.Pending;
 
         public User User { get; set; } = null!;

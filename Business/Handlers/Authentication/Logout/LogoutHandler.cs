@@ -1,3 +1,4 @@
+using Business.Handlers.Authentication.Logout.Dto;
 using Business.Interfaces.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;

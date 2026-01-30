@@ -1,7 +1,6 @@
-﻿using Business.Handlers.Authentication.Login.Dto;
-using MediatR;
+﻿using MediatR;
 
-namespace Business.Handlers.Authentication.Login
+namespace Business.Handlers.Authentication.Login.Dto
 {
     public record LoginCommand : IRequest<LoginResponse>
     {

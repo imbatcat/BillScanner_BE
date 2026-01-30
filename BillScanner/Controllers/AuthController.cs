@@ -8,6 +8,8 @@ using System.Security.Claims;
 using Business.Handlers.Authentication.Login.Dto;
 using Business.Handlers.Authentication.Register.Dto;
 using Business.Handlers.Authentication.Register;
+using BillScanner.Models;
+using Business.Handlers.Authentication.Logout.Dto;
 
 namespace BillScanner.Controllers
 {
@@ -21,7 +23,7 @@ namespace BillScanner.Controllers
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<RegisterResponse>> Register([FromBody] RegisterRequest request)
+        public async Task<ActionResult<RegisterResponse>> Register([FromBody] RegisterModel request)
         {
             if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
             {
@@ -49,7 +51,7 @@ namespace BillScanner.Controllers
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
+        public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginModel request)
         {
             if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
             {
