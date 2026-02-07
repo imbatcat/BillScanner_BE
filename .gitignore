@@ -399,6 +399,5 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
-BillScanner/appsettings.Development.json
-BillScanner/appsettings.json
+appsettings*.json
 /Infrastructure/Migrations

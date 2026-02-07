@@ -133,6 +133,7 @@ namespace BillScanner.Middleware
                         Details = httpContext.RequestServices
                             .GetRequiredService<IHostEnvironment>()
                             .IsDevelopment()
+                                || httpContext.RequestServices.GetRequiredService<IHostEnvironment>().IsEnvironment("Test")
                             ? exception.Message
                             : "Please contact support if the problem persists"
                     };

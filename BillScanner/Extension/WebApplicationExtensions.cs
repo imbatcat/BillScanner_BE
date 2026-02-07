@@ -10,7 +10,7 @@ namespace BillScanner.Extension
         /// </summary>
         public static void UseOpenApiWithSwagger(this WebApplication app)
         {
-            if (app.Environment.IsDevelopment())
+            if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Test"))
             {
                 // Map the OpenAPI endpoint
                 app.MapOpenApi();
@@ -29,8 +29,6 @@ namespace BillScanner.Extension
                     options.EnableDeepLinking();
                     options.DisplayRequestDuration();
                 });
-
-
             }
         }
     }

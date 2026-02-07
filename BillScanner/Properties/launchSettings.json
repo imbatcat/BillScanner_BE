@@ -1,5 +1,15 @@
 {
   "profiles": {
+    "https-test": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "launchUrl": "swagger",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Test"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "https://localhost:7139;http://localhost:5080"
+    },
     "https": {
       "commandName": "Project",
       "launchBrowser": true,
