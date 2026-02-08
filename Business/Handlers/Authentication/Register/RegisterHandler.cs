@@ -6,6 +6,7 @@ using Domain.Entities;
 using MediatR;
 using System.Security.Cryptography;
 using System.Text;
+using Azure.Core;
 
 namespace Business.Handlers.Authentication.Register
 {
@@ -32,9 +33,12 @@ namespace Business.Handlers.Authentication.Register
 
             return new RegisterResponse
             {
-                UserId = user.Id,
-                Email = user.Email,
-                DisplayName = user.DisplayName,
+                User = new RegisteredUserResponse
+                {
+                    Id = user.Id,
+                    Email = user.Email,
+                    DisplayName = user.DisplayName
+                },
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
                 IdToken = idToken

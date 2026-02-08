@@ -104,10 +104,10 @@ namespace Test.Unit.Business.Handlers
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(command.Email, result.Email);
-            Assert.Equal(command.DisplayName, result.DisplayName);
+            Assert.Equal(command.Email, result.User.Email);
+            Assert.Equal(command.DisplayName, result.User.DisplayName);
             Assert.Equal("access-token", result.AccessToken);
-            Assert.NotEqual(Guid.Empty, result.UserId);
+            Assert.NotEqual(Guid.Empty, result.User.Id);
 
             var userInDb = await dbContext.Users.FirstOrDefaultAsync(u => u.Email == command.Email);
             Assert.NotNull(userInDb);
@@ -130,7 +130,7 @@ namespace Test.Unit.Business.Handlers
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal("testuser", result.DisplayName);
+            Assert.Equal("testuser", result.User.DisplayName);
 
             var userInDb = await dbContext.Users.FirstOrDefaultAsync(u => u.Email == command.Email);
             Assert.NotNull(userInDb);

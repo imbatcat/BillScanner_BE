@@ -4,6 +4,7 @@ namespace Business.Handlers.Images.GetUploadStorageSignature.Dto
         string Signature,
         long Timestamp,
         string ApiKey,
-        string CloudName
+        string CloudName,
+        string Folder
     );
 }

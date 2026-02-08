@@ -35,4 +35,10 @@
       <Folder Include="Handlers\Webhooks\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Reference Include="Azure.Core">
+        <HintPath>C:\Users\5540\.nuget\packages\azure.core\1.47.1\lib\net8.0\Azure.Core.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
   </Project>

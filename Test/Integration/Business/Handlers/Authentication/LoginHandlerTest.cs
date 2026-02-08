@@ -2,10 +2,8 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using BillScanner.Controllers.Base;
 using Business.Handlers.Authentication.Login.Dto;
-using BillScanner.Models;
 using Domain.Entities;
 using FluentAssertions;
 using Test.Configuration;
@@ -56,6 +54,9 @@ namespace Test.Integration.Business.Handlers.Authentication
             var result = await response.Content.ReadFromJsonAsync<LoginResponse>(JsonSerializerOptions);
 
             result.Should().NotBeNull();
+            result.User.Id.Should().Be(userId);
+            result.User.Email.Should().Be("test@test.com");
+            result.User.DisplayName.Should().Be("test");
             result.AccessToken.Should().NotBeEmpty();
             result.RefreshToken.Should().NotBeEmpty();
             result.IdToken.Should().NotBeEmpty();

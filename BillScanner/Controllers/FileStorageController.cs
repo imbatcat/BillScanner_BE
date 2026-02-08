@@ -8,7 +8,8 @@ namespace BillScanner.Controllers
     public class FileStorageController(IMediator mediator) : BaseApiController
     {
         [HttpGet("signature")]
-        public async Task<IActionResult> GetUploadStorageSignature([FromQuery] bool isInvoice)
+        public async Task<ActionResult<GetUploadStorageSignatureResponse>> GetUploadStorageSignature(
+            [FromQuery] bool isInvoice)
         {
             var result = await mediator.Send(new GetUploadStorageSignatureRequest(isInvoice));
             return Ok(result);

@@ -14,10 +14,12 @@ namespace Infrastructure.Services.FileStorage.Cloudinary
         public Task<GetUploadStorageSignatureResponse> GetUploadStorageSignatureAsync(bool isInvoice)
         {
             var timestamp = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
-            var folder = isInvoice ? $"{_configuration.Value.FolderName}/invoices" : _configuration.Value.FolderName;
+            var folder = isInvoice
+                ? $"{_configuration.Value.InvoiceFolderName}"
+                : _configuration.Value.ReceiptFolderName;
             var parameters = new Dictionary<string, object>
             {
-                { "folder", folder },
+                { "asset_folder", folder },
                 { "timestamp", timestamp }
             };
 
@@ -27,6 +29,7 @@ namespace Infrastructure.Services.FileStorage.Cloudinary
                 Signature: signature,
                 Timestamp: timestamp,
                 ApiKey: _cloudinary.Api.Account.ApiKey,
+                Folder: folder,
                 CloudName: _cloudinary.Api.Account.Cloud
             ));
         }

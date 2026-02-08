@@ -40,7 +40,7 @@ namespace Test.Integration.Business.Handlers.Authentication
             var result = JsonSerializer.Deserialize<RegisterResponse>(responseContent, JsonSerializerOptions);
 
             result.Should().NotBeNull();
-            result.Email.Should().Be("test@test.com");
+            result.User.Email.Should().Be("test@test.com");
             result.AccessToken.Should().NotBeEmpty();
             result.RefreshToken.Should().NotBeEmpty();
             result.IdToken.Should().NotBeEmpty();

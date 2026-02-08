@@ -10,6 +10,7 @@ using Business.Handlers.Authentication.Register.Dto;
 using Business.Handlers.Authentication.Register;
 using BillScanner.Models;
 using Business.Handlers.Authentication.Logout.Dto;
+using System.ComponentModel.DataAnnotations;
 
 namespace BillScanner.Controllers
 {
@@ -28,6 +29,12 @@ namespace BillScanner.Controllers
             if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
             {
                 return BadRequestWithMessage("Email and password are required");
+            }
+
+            var emailValidator = new EmailAddressAttribute();
+            if (!emailValidator.IsValid(request.Email))
+            {
+                return BadRequestWithMessage("Invalid email address");
             }
 
             var command = new RegisterCommand
@@ -56,6 +63,12 @@ namespace BillScanner.Controllers
             if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
             {
                 return BadRequestWithMessage("Email and password are required");
+            }
+
+            var emailValidator = new EmailAddressAttribute();
+            if (!emailValidator.IsValid(request.Email))
+            {
+                return BadRequestWithMessage("Invalid email address");
             }
 
             var query = new LoginCommand

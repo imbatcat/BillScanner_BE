@@ -11,40 +11,43 @@ using System.Text;
 namespace Business.Handlers.Authentication.Login
 {
     public class LoginHandler(
-        IUnitOfWork _unitOfWork,
-        IUserTokenService _tokenService,
-        ILogger<LoginHandler> _logger) : IRequestHandler<LoginCommand, LoginResponse>
+        IUnitOfWork unitOfWork,
+        IUserTokenService tokenService,
+        ILogger<LoginHandler> logger) : IRequestHandler<LoginCommand, LoginResponse>
     {
         public async Task<LoginResponse> Handle(LoginCommand request, CancellationToken cancellationToken)
         {
             var emailSpec = new UserByEmailSpecification(request.Email);
-            var user = await _unitOfWork.Repository<User>()
+            var user = await unitOfWork.Repository<User>()
                 .GetBySpecificationAsync(emailSpec);
 
             if (user == null)
             {
-                _logger.LogWarning("Login failed: User not found - {Email}", request.Email);
+                logger.LogWarning("Login failed: User not found - {Email}", request.Email);
                 throw new ArgumentException("Invalid email or password");
             }
 
             if (!VerifyPassword(request.Password, user.Password))
             {
-                _logger.LogWarning("Login failed: Invalid password - {Email}", request.Email);
+                logger.LogWarning("Login failed: Invalid password - {Email}", request.Email);
                 throw new ArgumentException("Invalid email or password");
             }
 
-            _logger.LogInformation("User logged in successfully: {Email}", user.Email);
+            logger.LogInformation("User logged in successfully: {Email}", user.Email);
 
             var roles = new List<string> { "User" };
-            var accessToken = _tokenService.CreateAccessToken(user, roles);
-            var refreshToken = _tokenService.CreateRefreshToken(user);
-            var idToken = _tokenService.CreateIdToken(user, roles);
+            var accessToken = tokenService.CreateAccessToken(user, roles);
+            var refreshToken = tokenService.CreateRefreshToken(user);
+            var idToken = tokenService.CreateIdToken(user, roles);
 
             return new LoginResponse
             {
-                UserId = user.Id,
-                Email = user.Email,
-                DisplayName = user.DisplayName,
+                User = new LoginUserResponse
+                {
+                    Id = user.Id,
+                    Email = user.Email,
+                    DisplayName = user.DisplayName
+                },
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
                 IdToken = idToken
