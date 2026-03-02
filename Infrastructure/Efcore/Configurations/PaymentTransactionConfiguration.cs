@@ -4,20 +4,20 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Infrastructure.Efcore.Configurations
 {
-    public class PaymentMethodConfiguration : IEntityTypeConfiguration<PaymentMethod>
+    public class PaymentTransactionConfiguration : IEntityTypeConfiguration<PaymentTransaction>
     {
-        public void Configure(EntityTypeBuilder<PaymentMethod> builder)
+        public void Configure(EntityTypeBuilder<PaymentTransaction> builder)
         {
-            builder.ToTable("payment_methods");
+            builder.ToTable("payment_transactions");
 
             builder.Property(e => e.BillId)
                 .IsRequired();
 
-            builder.Property(e => e.MethodType)
+            builder.Property(e => e.PaymentType)
                 .IsRequired()
                 .HasConversion(
                     v => v.ToString(),
-                    v => Enum.Parse<MethodType>(v));
+                    v => Enum.Parse<PaymentType>(v));
 
             builder.Property(e => e.BankCode)
                 .HasMaxLength(6);

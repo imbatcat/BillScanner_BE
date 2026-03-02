@@ -2,25 +2,25 @@
 {
     public class Bill : BaseEntity
     {
+        // UI props
         public Guid UserId { get; set; }
-
-        public ExtractionMethod ExtractionMethod { get; set; }
-
-        public string? MerchantName { get; set; }
-
-        public decimal PaymentAmount { get; set; }
-
-        public string Currency { get; set; } = "VND";
-
-        public DateTime BillDate { get; set; }
-
-        public BillStatus Status { get; set; } = BillStatus.Pending;
 
         public User User { get; set; } = null!;
 
-        public ICollection<PaymentMethod> PaymentMethods { get; set; } = [];
+        public DateTime BillDate { get; set; }
+
+        public string? MerchantName { get; set; }
+
+
+        public ICollection<PaymentTransaction> PaymentTransactions { get; set; } = [];
 
         public ICollection<BillItem> BillItems { get; set; } = [];
+
+        // System related props
+
+        public ExtractionMethod ExtractionMethod { get; set; }
+
+        public BillStatus Status { get; set; } = BillStatus.Pending;
     }
 
     public enum ExtractionMethod

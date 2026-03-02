@@ -16,7 +16,7 @@
 
         public decimal TotalPrice { get; set; }
 
-        public Bill Bill { get; set; } = null!;
+        public Bill Bill { get; set; } 
         public Item Item { get; set; }
     }
 }

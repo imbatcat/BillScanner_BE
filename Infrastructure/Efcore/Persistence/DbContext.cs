@@ -13,7 +13,7 @@ namespace Infrastructure.Efcore.Persistence
 
         public DbSet<BillItem> BillItems => Set<BillItem>();
 
-        public DbSet<PaymentMethod> PaymentMethods => Set<PaymentMethod>();
+        public DbSet<PaymentTransaction> PaymentTransactions => Set<PaymentTransaction>();
 
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {

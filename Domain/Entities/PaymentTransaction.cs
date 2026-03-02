@@ -1,10 +1,10 @@
-﻿namespace Domain.Entities
+namespace Domain.Entities
 {
-    public class PaymentMethod : BaseEntity
+    public class PaymentTransaction : BaseEntity
     {
         public Guid BillId { get; set; }
 
-        public MethodType MethodType { get; set; }
+        public PaymentType PaymentType { get; set; }
 
         public string? BankCode { get; set; }
 
@@ -23,7 +23,7 @@
         public Bill Bill { get; set; } = null!;
     }
 
-    public enum MethodType
+    public enum PaymentType
     {
         VietQrStatic,
 

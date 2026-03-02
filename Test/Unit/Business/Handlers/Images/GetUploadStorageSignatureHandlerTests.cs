@@ -28,7 +28,8 @@ public class GetUploadStorageSignatureHandlerTests
             Signature: "test-signature",
             Timestamp: 123456789,
             ApiKey: "test-api-key",
-            CloudName: "test-cloud-name"
+            CloudName: "test-cloud-name",
+            Folder: "test-folder"
         );
 
         fileStorageServiceMock
