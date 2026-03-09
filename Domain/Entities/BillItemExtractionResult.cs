@@ -4,6 +4,9 @@ namespace Domain.Entities
     {
         public Guid BillExtractionResultId { get; set; }
 
+        public Guid? BillItemId { get; set; }
+        public BillItem? BillItem { get; set; }
+
         public string? ExtractedItemName { get; set; }
         public decimal? ItemNameConfidence { get; set; }
         public bool? IsItemNameCorrect { get; set; }

@@ -11,8 +11,7 @@
 
         public string? MerchantName { get; set; }
 
-
-        public ICollection<PaymentTransaction> PaymentTransactions { get; set; } = [];
+        public PaymentTransaction? PaymentTransaction { get; set; }
 
         public ICollection<BillItem> BillItems { get; set; } = [];
 

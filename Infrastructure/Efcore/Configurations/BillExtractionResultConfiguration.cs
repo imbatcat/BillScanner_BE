@@ -19,12 +19,6 @@ namespace Infrastructure.Efcore.Configurations
             builder.Property(e => e.MerchantNameConfidence)
                 .HasPrecision(5, 4); // To support 0.0000 to 1.0000 or similar
 
-            builder.Property(e => e.ExtractedTotalAmount)
-                .HasPrecision(18, 2);
-
-            builder.Property(e => e.TotalAmountConfidence)
-                .HasPrecision(5, 4);
-
             builder.Property(e => e.BillDateConfidence)
                 .HasPrecision(5, 4);
 
@@ -34,9 +28,13 @@ namespace Infrastructure.Efcore.Configurations
             builder.Property(e => e.CurrencyConfidence)
                 .HasPrecision(5, 4);
 
+            builder.Property(e => e.BillId)
+                .IsRequired(false);
+
             builder.HasOne(e => e.Bill)
                 .WithOne() // Assuming 1-to-1 as requested
                 .HasForeignKey<BillExtractionResult>(e => e.BillId)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

@@ -22,10 +22,8 @@ namespace Infrastructure.Efcore.Configurations
             builder.Property(e => e.MerchantName)
                 .HasMaxLength(255);
 
-
             builder.Property(e => e.BillDate)
                 .IsRequired();
-
 
             builder.Property(e => e.Status)
                 .IsRequired()
@@ -34,10 +32,9 @@ namespace Infrastructure.Efcore.Configurations
                     v => Enum.Parse<BillStatus>(v))
                 .HasDefaultValue(BillStatus.Pending);
 
-
-            builder.HasMany(e => e.PaymentTransactions)
+            builder.HasOne(e => e.PaymentTransaction)
                 .WithOne(e => e.Bill)
-                .HasForeignKey(e => e.BillId)
+                .HasForeignKey<PaymentTransaction>(e => e.BillId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasMany(e => e.BillItems)
