@@ -23,7 +23,10 @@ namespace Infrastructure.Efcore.Configurations
                 .HasMaxLength(255);
 
             builder.Property(e => e.BillDate)
-                .IsRequired();
+                .IsRequired()
+                .HasColumnType("date");
+
+            builder.Property(e => e.BillTime);
 
             builder.Property(e => e.Status)
                 .IsRequired()

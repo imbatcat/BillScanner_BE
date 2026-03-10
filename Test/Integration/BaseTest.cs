@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 using Test.Configuration;
 using Xunit.Abstractions;
 
-namespace Test.Integration.Business.Handlers.BaseTests
+namespace Test.Integration
 {
     [Collection("BillScannerTestCollection")]
     public abstract class BaseTest :
@@ -25,7 +25,6 @@ namespace Test.Integration.Business.Handlers.BaseTests
                 Converters = { new JsonStringEnumConverter() }
             };
         }
-
 
         public virtual async Task DisposeAsync()
         {

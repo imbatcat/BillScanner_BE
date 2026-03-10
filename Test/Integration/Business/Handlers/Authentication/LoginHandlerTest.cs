@@ -7,7 +7,6 @@ using Business.Handlers.Authentication.Login.Dto;
 using Domain.Entities;
 using FluentAssertions;
 using Test.Configuration;
-using Test.Integration.Business.Handlers.BaseTests;
 using Xunit.Abstractions;
 
 namespace Test.Integration.Business.Handlers.Authentication

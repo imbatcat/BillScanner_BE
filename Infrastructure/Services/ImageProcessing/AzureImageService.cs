@@ -9,20 +9,13 @@ using Microsoft.Extensions.Options;
 namespace Infrastructure.Services.ImageProcessing
 {
     [UsedImplicitly]
-    public class AzureImageService : IImageExtractionService, ISingletonService
+    public class AzureImageService(
+        IOptions<AzureImageSettings> settings,
+        DocumentIntelligenceClient client) : IImageExtractionService, ISingletonService
     {
-        private readonly string _invoiceModelId;
-        private readonly string _receiptModelId;
-        private readonly DocumentIntelligenceClient _client;
-
-        public AzureImageService(IOptions<AzureImageSettings> settings)
-        {
-            _invoiceModelId = settings.Value.InvoiceModelId;
-            _receiptModelId = settings.Value.ReceiptModelId;
-
-            var azureCredential = new AzureKeyCredential(settings.Value.ApiKey1);
-            _client = new DocumentIntelligenceClient(new Uri(settings.Value.Endpoint), azureCredential);
-        }
+        private readonly string _invoiceModelId = settings.Value.InvoiceModelId;
+        private readonly string _receiptModelId = settings.Value.ReceiptModelId;
+        private readonly DocumentIntelligenceClient _client = client;
 
         public async Task<ImageProcessResult> ExtractImageAsync(
             string url,
@@ -43,6 +36,8 @@ namespace Infrastructure.Services.ImageProcessing
             GetMerchantName(result, receipt);
 
             GetTransactionDate(result, receipt);
+
+            GetTransactionTime(result, receipt);
 
             GetItems(result, receipt);
 
@@ -72,14 +67,26 @@ namespace Infrastructure.Services.ImageProcessing
         private static void GetTransactionDate(ImageProcessResult result, AnalyzedDocument receipt)
         {
             if (!receipt.Fields.TryGetValue("TransactionDate", out var transactionDateField)) return;
-            if (transactionDateField.FieldType == DocumentFieldType.Date)
+            if (transactionDateField.FieldType != DocumentFieldType.Date) return;
+            if (transactionDateField.ValueDate is { } date)
             {
-                result.BillDate = new ExtractedValue<DateTime?>
+                result.BillDate = new ExtractedValue<DateOnly?>
                 {
-                    Value = transactionDateField.ValueDate?.DateTime ?? DateTime.Now,
+                    Value = DateOnly.FromDateTime(date.DateTime),
                     Confidence = (decimal)(transactionDateField.Confidence ?? 0)
                 };
             }
+        }
+
+        private static void GetTransactionTime(ImageProcessResult result, AnalyzedDocument receipt)
+        {
+            if (!receipt.Fields.TryGetValue("TransactionTime", out var transactionTimeField)) return;
+            if (transactionTimeField.FieldType != DocumentFieldType.Time) return;
+            result.BillTime = new ExtractedValue<TimeSpan?>
+            {
+                Value = transactionTimeField.ValueTime,
+                Confidence = (decimal)(transactionTimeField.Confidence ?? 0)
+            };
         }
 
         private static void GetItems(ImageProcessResult result, AnalyzedDocument receipt)
@@ -94,6 +101,10 @@ namespace Infrastructure.Services.ImageProcessing
                     IReadOnlyDictionary<string, DocumentField> itemFields = itemField.ValueDictionary;
 
                     GetItemName(extractedItem, itemFields);
+
+                    GetItemUnitPrice(extractedItem, itemFields);
+
+                    GetItemQuantity(extractedItem, itemFields);
 
                     GetItemTotalPrice(extractedItem, itemFields);
 
@@ -116,6 +127,41 @@ namespace Infrastructure.Services.ImageProcessing
                 }
             }
 
+            static void GetItemQuantity(ExtractedItem extractedItem,
+                IReadOnlyDictionary<string, DocumentField> itemFields)
+            {
+                if (!itemFields.TryGetValue("Quantity", out var itemQuantityField)) return;
+
+                int? quantity = null;
+                if (itemQuantityField.FieldType == DocumentFieldType.Int64
+                    && itemQuantityField.ValueInt64 is { } i)
+                    quantity = (int)i;
+                else if (itemQuantityField.FieldType == DocumentFieldType.Double
+                         && itemQuantityField.ValueDouble is { } d)
+                    quantity = (int)d;
+
+                if (quantity == null) return;
+                extractedItem.Quantity = new ExtractedValue<int?>
+                {
+                    Value = (int)quantity,
+                    Confidence = (decimal)(itemQuantityField.Confidence ?? 0)
+                };
+            }
+
+            static void GetItemUnitPrice(ExtractedItem extractedItem,
+                IReadOnlyDictionary<string, DocumentField> itemFields)
+            {
+                if (!itemFields.TryGetValue("Price", out var itemUnitPriceField)) return;
+                if (itemUnitPriceField.FieldType == DocumentFieldType.Currency)
+                {
+                    extractedItem.UnitPrice = new ExtractedValue<decimal?>
+                    {
+                        Value = (decimal)itemUnitPriceField.ValueCurrency.Amount,
+                        Confidence = (decimal)(itemUnitPriceField.Confidence ?? 0)
+                    };
+                }
+            }
+
             static void GetItemTotalPrice(ExtractedItem extractedItem,
                 IReadOnlyDictionary<string, DocumentField> itemFields)
             {
@@ -130,7 +176,6 @@ namespace Infrastructure.Services.ImageProcessing
                 }
             }
         }
-
 
         private static void GetPrice(ImageProcessResult result, AnalyzedDocument receipt)
         {
@@ -167,14 +212,20 @@ namespace Infrastructure.Services.ImageProcessing
 
         private static void GetCurrency(ImageProcessResult result, AnalyzedDocument receipt)
         {
-            if (!receipt.Fields.TryGetValue("Currency", out var currencyField)) return;
-            if (currencyField.FieldType == DocumentFieldType.String)
+            if (!receipt.Fields.TryGetValue("Items", out var itemsField)) return;
             {
-                result.Currency = new ExtractedValue<string?>
+                if (itemsField.FieldType != DocumentFieldType.List) return;
+                if (!itemsField.ValueList[0].ValueDictionary
+                        .TryGetValue("TotalPrice", out var totalPriceField)) return;
+
+                if (totalPriceField.FieldType == DocumentFieldType.Currency)
                 {
-                    Value = currencyField.ValueString,
-                    Confidence = (decimal)(currencyField.Confidence ?? 0)
-                };
+                    result.Currency = new ExtractedValue<string?>
+                    {
+                        Value = totalPriceField.ValueCurrency.CurrencyCode,
+                        Confidence = (decimal)(totalPriceField.Confidence ?? 0)
+                    };
+                }
             }
         }
     }

@@ -22,19 +22,18 @@ namespace Infrastructure.Efcore.Configurations
             builder.Property(e => e.BillDateConfidence)
                 .HasPrecision(5, 4);
 
+            builder.Property(e => e.BillTimeConfidence)
+                .HasPrecision(5, 4);
+
             builder.Property(e => e.ExtractedCurrency)
                 .HasMaxLength(10);
 
             builder.Property(e => e.CurrencyConfidence)
                 .HasPrecision(5, 4);
 
-            builder.Property(e => e.BillId)
-                .IsRequired(false);
-
             builder.HasOne(e => e.Bill)
-                .WithOne() // Assuming 1-to-1 as requested
+                .WithOne()
                 .HasForeignKey<BillExtractionResult>(e => e.BillId)
-                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

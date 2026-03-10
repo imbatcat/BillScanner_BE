@@ -1,5 +1,4 @@
 using Test.Configuration;
-using Test.Integration.Business.Handlers.BaseTests;
 using Xunit.Abstractions;
 using FluentAssertions;
 using System.Net;
@@ -41,10 +40,13 @@ namespace Test.Integration.Business.Handlers.Images
             outputHelper.WriteLine($"URL: {url}");
             outputHelper.WriteLine($"Vendor: {result.Vendor.Name.Value}");
             outputHelper.WriteLine($"Total: {result.Total.Value}");
+            outputHelper.WriteLine($"Currency: {result.Currency.Value}");
+            outputHelper.WriteLine($"Bill date: {result.BillDate.Value}");
+            outputHelper.WriteLine($"Bill time: {result.BillTime.Value}");
             outputHelper.WriteLine($"Items: {result.Items.Count}");
             foreach (var item in result.Items)
             {
-                outputHelper.WriteLine($"  - {item.ItemName.Value}: {item.TotalPrice.Value}");
+                outputHelper.WriteLine($"  - {item.ItemName.Value} - {item.Quantity.Value} - {item.UnitPrice.Value}: {item.TotalPrice.Value}");
             }
         }
     }

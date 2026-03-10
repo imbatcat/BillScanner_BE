@@ -3,7 +3,6 @@ using System.Net.Http.Json;
 using Business.Handlers.Images.GetUploadStorageSignature.Dto;
 using FluentAssertions;
 using Test.Configuration;
-using Test.Integration.Business.Handlers.BaseTests;
 using Xunit.Abstractions;
 
 namespace Test.Integration.Business.Handlers.Images

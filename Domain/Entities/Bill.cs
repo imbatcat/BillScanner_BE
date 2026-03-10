@@ -7,7 +7,9 @@
 
         public User User { get; set; } = null!;
 
-        public DateTime BillDate { get; set; }
+        public DateOnly BillDate { get; set; }
+
+        public TimeSpan? BillTime { get; set; }
 
         public string? MerchantName { get; set; }
 

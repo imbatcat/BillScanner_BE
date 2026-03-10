@@ -65,43 +65,26 @@ namespace Business.Handlers.Images.ProcessImage
 
         private List<string> ValidateMissingFields(ImageProcessResult result)
         {
-            var missingFields = new List<string>();
-            if (result.Vendor.Name.Value == null)
+            var checks = new (Func<bool> IsMissing, string FieldName)[]
             {
-                missingFields.Add("MerchantName");
-            }
+                (() => result.Vendor.Name.Value == null, "MerchantName"),
+                (() => result.BillDate.Value == null, "TransactionDate"),
+                (() => result.Items.Count == 0, "Items"),
+                (() => result.Items.Any(i => i.ItemName.Value == null), "ItemName"),
+                (() => result.Items.Any(i => i.Quantity.Value == null), "Quantity"),
+                (() => result.Items.Any(i => i.UnitPrice.Value == null), "UnitPrice"),
+                (() => result.Items.Any(i => i.TotalPrice.Value == null), "ItemTotalPrice"),
+                (() => result.Total.Value == null, "Total"),
+            };
 
-            if (result.BillDate.Value == null)
-            {
-                missingFields.Add("TransactionDate");
-            }
+            var missingFields = checks
+                .Where(c => c.IsMissing())
+                .Select(c => c.FieldName)
+                .ToList();
 
-            if (result.Items.Count == 0)
-            {
-                missingFields.Add("Items");
-            }
-
-            if (result.Items.Any(item => item.ItemName.Value == null))
-            {
-                missingFields.Add("ItemName");
-            }
-
-            if (result.Items.Any(item => item.TotalPrice.Value == null))
-            {
-                missingFields.Add("ItemTotalPrice");
-            }
-
-            if (result.Total.Value == null)
-            {
-                missingFields.Add("Total");
-            }
-
-            if (missingFields.Count > settings.Value.MinimumMissingFields)
-            {
-                throw new ScanRetryRequiredException();
-            }
-
-            return missingFields;
+            return missingFields.Count > settings.Value.MinimumMissingFields
+                ? throw new ScanRetryRequiredException()
+                : missingFields;
         }
     }
 }

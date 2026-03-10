@@ -8,6 +8,7 @@ namespace Business.Handlers.Images.ProcessImage.Dto.ImageProcessing
         public ExtractedValue<decimal?> Tax { get; set; } = new();
         public ExtractedValue<decimal?> Total { get; set; } = new();
         public ExtractedValue<string?> Currency { get; set; } = new();
-        public ExtractedValue<DateTime?> BillDate { get; set; } = new();
+        public ExtractedValue<DateOnly?> BillDate { get; set; } = new();
+        public ExtractedValue<TimeSpan?> BillTime { get; set; } = new();
     }
 }

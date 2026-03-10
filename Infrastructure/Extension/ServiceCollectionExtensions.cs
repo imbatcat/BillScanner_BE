@@ -85,7 +85,9 @@ namespace Infrastructure.Extension
             {
                 var settings = sp.GetRequiredService<IOptions<AzureImageSettings>>().Value;
                 var credential = new AzureKeyCredential(settings.ApiKey1);
-                return new DocumentIntelligenceClient(new Uri(settings.Endpoint), credential);
+                var options =
+                    new DocumentIntelligenceClientOptions();
+                return new DocumentIntelligenceClient(new Uri(settings.Endpoint), credential, options);
             });
         }
 

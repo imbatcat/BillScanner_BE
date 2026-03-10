@@ -9,7 +9,6 @@ using Domain.Entities;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Test.Configuration;
-using Test.Integration.Business.Handlers.BaseTests;
 using Xunit.Abstractions;
 
 namespace Test.Integration.Business.Handlers.Authentication

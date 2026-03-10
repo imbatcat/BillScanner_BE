@@ -46,7 +46,7 @@ public class ProcessImageHandlerTests
         var expectedResult = new ImageProcessResult
         {
             Vendor = new ExtractedVendor { Name = new ExtractedValue<string?> { Value = "Test Vendor" } },
-            BillDate = new ExtractedValue<DateTime?> { Value = DateTime.Now },
+            BillDate = new ExtractedValue<DateOnly?> { Value = DateOnly.FromDateTime(DateTime.Now) },
             Total = new ExtractedValue<decimal?> { Value = 100m },
             Items =
             [
@@ -85,7 +85,7 @@ public class ProcessImageHandlerTests
         var expectedResult = new ImageProcessResult
         {
             Vendor = new ExtractedVendor { Name = new ExtractedValue<string?> { Value = "Test Vendor" } },
-            BillDate = new ExtractedValue<DateTime?> { Value = DateTime.Now },
+            BillDate = new ExtractedValue<DateOnly?> { Value = DateOnly.FromDateTime(DateTime.Now) },
             Total = new ExtractedValue<decimal?> { Value = 100m },
             Items =
             [
@@ -128,7 +128,7 @@ public class ProcessImageHandlerTests
         var expectedResult = new ImageProcessResult
         {
             Vendor = new ExtractedVendor { Name = new ExtractedValue<string?> { Value = null } }, // Missing
-            BillDate = new ExtractedValue<DateTime?> { Value = DateTime.Now },
+            BillDate = new ExtractedValue<DateOnly?> { Value = DateOnly.FromDateTime(DateTime.Now) },
             Total = new ExtractedValue<decimal?> { Value = 100m },
             Items =
             [
