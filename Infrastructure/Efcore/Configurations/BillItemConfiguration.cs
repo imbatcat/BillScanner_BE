@@ -32,10 +32,6 @@ namespace Infrastructure.Efcore.Configurations
                 .HasPrecision(15, 2)
                 .IsRequired();
 
-            builder.HasOne(e => e.Item)
-                .WithMany()
-                .HasForeignKey(e => e.ItemId)
-                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
