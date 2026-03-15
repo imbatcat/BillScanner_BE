@@ -6,13 +6,13 @@ namespace Domain.Entities
 
         public PaymentType PaymentType { get; set; }
 
-        public string? BankCode { get; set; }
+        public Guid? BankId { get; set; }
 
-        public string? BankName { get; set; }
+        public Bank? Bank { get; set; }
 
         public string? BankAccount { get; set; }
 
-        public string? AccountHolder { get; set; }
+        public string? AccountHolder { get; set; } // the one receiving the payment
 
         public decimal TransactionAmount { get; set; }
 

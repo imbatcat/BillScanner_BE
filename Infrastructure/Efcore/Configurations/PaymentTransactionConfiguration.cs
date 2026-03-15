@@ -19,11 +19,12 @@ namespace Infrastructure.Efcore.Configurations
                     v => v.ToString(),
                     v => Enum.Parse<PaymentType>(v));
 
-            builder.Property(e => e.BankCode)
-                .HasMaxLength(6);
+            builder.Property(e => e.BankId);
 
-            builder.Property(e => e.BankName)
-                .HasMaxLength(100);
+            builder.HasOne(e => e.Bank)
+                .WithMany()
+                .HasForeignKey(e => e.BankId)
+                .OnDelete(DeleteBehavior.SetNull);
 
             builder.Property(e => e.BankAccount)
                 .HasMaxLength(34);
