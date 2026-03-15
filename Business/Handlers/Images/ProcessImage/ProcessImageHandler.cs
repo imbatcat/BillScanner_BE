@@ -1,3 +1,4 @@
+using Business.Common;
 using Business.Handlers.Images.ProcessImage.Dto;
 using Business.Handlers.Images.ProcessImage.Dto.ImageProcessing;
 using Business.Interfaces.Services;
@@ -24,7 +25,7 @@ namespace Business.Handlers.Images.ProcessImage
             ValidateTotalPrice(result);
 
             await cachingService.SetAsync(
-                request.Url,
+                CacheKeys.GetProcessResultCacheKey(request.UserId, request.Url),
                 result,
                 TimeSpan.FromMinutes(settings.Value.CacheExpirationTimeInMinutes));
 

@@ -25,11 +25,11 @@ public class RedisService(IConnectionMultiplexer connectionMultiplexer) : ICachi
         value.ToString(), jsonSerializerOptions);
   }
 
-  public async Task SetAsync<T>(string key, T value, TimeSpan? absoluteExpiration = null)
+  public async Task SetAsync<T>(string key, T value, TimeSpan? absoluteExpiration =null)
   {
     var db = connectionMultiplexer.GetDatabase();
     var jsonValue = JsonSerializer.Serialize(value, jsonSerializerOptions);
-    await db.StringSetAsync(key, jsonValue, absoluteExpiration);
+    await db.StringSetAsync(key, jsonValue, expiry: absoluteExpiration ?? Expiration.Default);
   }
 
   public async Task RemoveAsync(string key)

@@ -1,4 +1,4 @@
-﻿using Asp.Versioning;
+using Asp.Versioning;
 using BillScanner.Helpers.RequestHelpers;
 using Microsoft.AspNetCore.Mvc;
 
@@ -99,6 +99,16 @@ namespace BillScanner.Controllers.Base
         }
 
         #endregion
+
+        /// <summary>
+        /// Gets the current user ID from the claims.
+        /// </summary>
+        /// <returns>The user ID as a <see cref="Guid"/>.</returns>
+        protected Guid GetUserId()
+        {
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            return string.IsNullOrEmpty(userIdClaim) ? throw new UnauthorizedAccessException("User ID claim not found.") : Guid.Parse(userIdClaim);
+        }
     }
 
     #region Response Models
