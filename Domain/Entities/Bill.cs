@@ -1,4 +1,4 @@
-﻿namespace Domain.Entities
+namespace Domain.Entities
 {
     public class Bill : BaseEntity
     {
@@ -19,9 +19,9 @@
 
         // System related props
 
-        public ExtractionMethod ExtractionMethod { get; set; }
+        public string? ImgUrl { get; set; }
 
-        public BillStatus Status { get; set; } = BillStatus.Pending;
+        public ExtractionMethod ExtractionMethod { get; set; }
     }
 
     public enum ExtractionMethod
@@ -33,14 +33,4 @@
         Manual
     }
 
-    public enum BillStatus
-    {
-        Pending,
-
-        Verified,
-
-        Edited,
-
-        Exported
-    }
 }

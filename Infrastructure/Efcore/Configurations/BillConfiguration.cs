@@ -28,12 +28,8 @@ namespace Infrastructure.Efcore.Configurations
 
             builder.Property(e => e.BillTime);
 
-            builder.Property(e => e.Status)
-                .IsRequired()
-                .HasConversion(
-                    v => v.ToString(),
-                    v => Enum.Parse<BillStatus>(v))
-                .HasDefaultValue(BillStatus.Pending);
+            builder.Property(e => e.ImgUrl)
+                .HasMaxLength(2048);
 
             builder.HasOne(e => e.PaymentTransaction)
                 .WithOne(e => e.Bill)
