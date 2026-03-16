@@ -1,4 +1,4 @@
-﻿using CloudinaryDotNet;
+using CloudinaryDotNet;
 using Infrastructure.Efcore.Interceptors;
 using Infrastructure.Efcore.Persistence;
 using Infrastructure.MarkerInterfaces;
@@ -47,7 +47,7 @@ namespace Infrastructure.Extension
             });
 
             services.Scan(scan => scan
-                .FromAssemblyOf<IInfrastructureMarker>()
+                .FromAssembliesOf(typeof(IInfrastructureMarker))
                 // Register Scoped Services
                 .AddClasses(classes => classes.AssignableTo<IScopedService>())
                 .AsImplementedInterfaces()

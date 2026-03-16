@@ -1,13 +1,18 @@
 using Business.Common;
 using Business.Handlers.Bills.CreateBill.Dto;
 using Business.Handlers.Images.ProcessImage.Dto.ImageProcessing;
+using Business.Interfaces.Repositories;
+using Business.Interfaces.Builders;
 using Business.Interfaces.Services;
+using Domain.Entities;
 using MediatR;
 
 namespace Business.Handlers.Bills.CreateBill;
 
 public class CreateBillHandler(
-    ICachingService cachingService) : IRequestHandler<CreateBillCommand, CreateBillResponse>
+    IBuilderFactory builderFactory,
+    ICachingService cachingService,
+    IUnitOfWork unitOfWork) : IRequestHandler<CreateBillCommand, CreateBillResponse>
 {
     public async Task<CreateBillResponse> Handle(CreateBillCommand request, CancellationToken cancellationToken)
     {
@@ -15,9 +20,26 @@ public class CreateBillHandler(
             await cachingService.GetAsync<ImageProcessResult>(
                 CacheKeys.GetProcessResultCacheKey(request.UserId, request.ImgUrl)) ??
             throw new InvalidOperationException("No result found for the given user and image URL.");
+
+        var billBuilder = builderFactory.Builder<IBillBuilder>()
+            .FromProcessResult(result)
+            .WithUserId(request.UserId)
+            .WithImgUrl(request.ImgUrl)
+            .WithUserEdits(request.UserEdits);
+
+        var bill = billBuilder.Build();
+        var extractionResult = billBuilder.GetExtractionResult();
+
+        unitOfWork.Repository<Bill>().Insert(bill);
+
+        extractionResult.BillId = bill.Id;
+        unitOfWork.Repository<BillExtractionResult>().Insert(extractionResult);
+
+        await unitOfWork.CommitAsync();
+
         return new CreateBillResponse
         {
-            BillId = null
+            BillId = bill.Id
         };
     }
 }

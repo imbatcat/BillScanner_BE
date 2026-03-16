@@ -1,5 +1,7 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Business.Interfaces.Builders;
+using Business.Builders;
 
 namespace Business.Extension
 {
@@ -16,7 +18,15 @@ namespace Business.Extension
                 cfg.LicenseKey = configuration["AutoMapperLicenseKey"];
                 cfg.RegisterServicesFromAssembly(applicationAssembly);
             });
-            
+
+            services.AddScoped<IBuilderFactory, BuilderFactory>();
+
+            services.Scan(scan => scan
+                .FromAssemblies(applicationAssembly)
+                .AddClasses(classes => classes.AssignableTo<IBuilderMarker>())
+                .AsImplementedInterfaces()
+                .WithTransientLifetime());
+
             services.Configure<BusinessSettings>(configuration.GetSection("BusinessSettings"));
         }
     }

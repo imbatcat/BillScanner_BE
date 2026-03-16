@@ -1,4 +1,4 @@
-using Business.Handlers.Bills.Dto;
+using Business.Handlers.Bills.CreateBill.Dto;
 using Business.Handlers.Images.ProcessImage.Dto.ImageProcessing;
 using Domain.Entities;
 

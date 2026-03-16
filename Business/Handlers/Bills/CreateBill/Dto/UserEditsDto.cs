@@ -1,4 +1,4 @@
-namespace Business.Handlers.Bills.Dto
+namespace Business.Handlers.Bills.CreateBill.Dto
 {
     public record UserEditsDto
     {

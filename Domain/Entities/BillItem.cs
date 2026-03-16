@@ -15,6 +15,7 @@ namespace Domain.Entities
 
         public decimal TotalPrice { get; set; }
 
+        public bool IsExtractionCorrect { get; set; } = true;
         public Bill Bill { get; set; } = null!;
     }
 }
