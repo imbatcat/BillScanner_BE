@@ -8,6 +8,8 @@ public interface IBillBuilder : IBuilder<Bill>
     IBillBuilder FromProcessResult(Handlers.Images.ProcessImage.Dto.ImageProcessing.ImageProcessResult result);
     IBillBuilder WithUserEdits(UserEditsDto dto);
     IBillBuilder WithMerchant(string? name);
+    IBillBuilder WithMerchantBank(string? bank);
+    IBillBuilder WithMerchantBankNumber(string? number);
     IBillBuilder WithDate(DateOnly date);
     IBillBuilder WithTime(TimeSpan? time);
     IBillBuilder WithUserId(Guid userId);

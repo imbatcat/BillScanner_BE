@@ -8,7 +8,7 @@ namespace Business.Builders;
 [UsedImplicitly]
 public class BillBuilder(IBuilderFactory builderFactory) : IBillBuilder
 {
-    private Bill _bill = new() { PaymentTransaction = new() };
+    private Bill _bill = new();
     private BillExtractionResult _extractionResult = new();
     private readonly List<BillItemExtractionResult> _itemExtractionResults = [];
 
@@ -51,7 +51,6 @@ public class BillBuilder(IBuilderFactory builderFactory) : IBillBuilder
         if (total != null && total != _extractionResult.ExtractedTransactionAmount)
             _extractionResult.IsTransactionAmountCorrect = false;
         _bill.Total = total ?? _bill.Total;
-        _bill.PaymentTransaction!.TransactionAmount = total ?? 0;
         return this;
     }
 
@@ -73,8 +72,20 @@ public class BillBuilder(IBuilderFactory builderFactory) : IBillBuilder
             _extractionResult.IsCurrencyCorrect = false;
 
         if (currency != null)
-            _bill.PaymentTransaction!.Currency = currency;
+            _bill.Currency = currency;
 
+        return this;
+    }
+
+    public IBillBuilder WithMerchantBank(string? bank)
+    {
+        _bill.MerchantBank = bank ?? _bill.MerchantBank;
+        return this;
+    }
+
+    public IBillBuilder WithMerchantBankNumber(string? number)
+    {
+        _bill.MerchantBankNumber = number ?? _bill.MerchantBankNumber;
         return this;
     }
 
@@ -101,6 +112,8 @@ public class BillBuilder(IBuilderFactory builderFactory) : IBillBuilder
     {
         var builder = this
             .WithMerchant(dto.MerchantName)
+            .WithMerchantBank(dto.MerchantBank)
+            .WithMerchantBankNumber(dto.MerchantBankNumber)
             .WithDate(dto.BillDate)
             .WithTime(dto.BillTime)
             .WithTotal(dto.Total)
@@ -145,8 +158,7 @@ public class BillBuilder(IBuilderFactory builderFactory) : IBillBuilder
         _bill.Total = _extractionResult.ExtractedTransactionAmount;
         _bill.ExtractionMethod = ExtractionMethod.Ocr;
 
-        _bill.PaymentTransaction!.Currency = _extractionResult.ExtractedCurrency ?? _bill.PaymentTransaction.Currency;
-        _bill.PaymentTransaction.TransactionAmount = _bill.Total ?? 0;
+        _bill.Currency = _extractionResult.ExtractedCurrency ?? _bill.Currency;
 
         _bill.BillItems = result.Items.Select(i =>
         {

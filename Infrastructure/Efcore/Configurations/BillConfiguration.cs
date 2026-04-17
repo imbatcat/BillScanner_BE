@@ -31,10 +31,15 @@ namespace Infrastructure.Efcore.Configurations
             builder.Property(e => e.ImgUrl)
                 .HasMaxLength(2048);
 
-            builder.HasOne(e => e.PaymentTransaction)
-                .WithOne(e => e.Bill)
-                .HasForeignKey<PaymentTransaction>(e => e.BillId)
-                .OnDelete(DeleteBehavior.Cascade);
+            builder.Property(e => e.MerchantBank)
+                .HasMaxLength(100);
+
+            builder.Property(e => e.MerchantBankNumber)
+                .HasMaxLength(34);
+
+            builder.Property(e => e.Currency)
+                .HasMaxLength(3)
+                .HasDefaultValue("VND");
 
             builder.HasMany(e => e.BillItems)
                 .WithOne(e => e.Bill)

@@ -12,11 +12,18 @@ namespace Domain.Entities
         public TimeSpan? BillTime { get; set; }
 
         public string? MerchantName { get; set; }
+
+        public string? MerchantBank { get; set; }
+
+        public string? MerchantBankNumber { get; set; }
+
+        public string Currency { get; set; } = "VND";
+
         public decimal? SubTotal { get; set; }
 
         public decimal? Tax { get; set; }
+
         public decimal? Total { get; set; }
-        public PaymentTransaction? PaymentTransaction { get; set; }
 
         public ICollection<BillItem> BillItems { get; set; } = [];
 
