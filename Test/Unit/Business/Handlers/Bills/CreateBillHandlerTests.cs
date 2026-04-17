@@ -17,7 +17,6 @@ public class CreateBillHandlerTests
     private readonly Mock<ICachingService> _cachingServiceMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly Mock<IGenericRepository<Bill>> _billRepositoryMock;
-    private readonly Mock<IGenericRepository<BillExtractionResult>> _extractionResultRepositoryMock;
     private readonly CreateBillHandler _handler;
 
     public CreateBillHandlerTests()
@@ -26,10 +25,8 @@ public class CreateBillHandlerTests
         _cachingServiceMock = new Mock<ICachingService>();
         _unitOfWorkMock = new Mock<IUnitOfWork>();
         _billRepositoryMock = new Mock<IGenericRepository<Bill>>();
-        _extractionResultRepositoryMock = new Mock<IGenericRepository<BillExtractionResult>>();
 
         _unitOfWorkMock.Setup(u => u.Repository<Bill>()).Returns(_billRepositoryMock.Object);
-        _unitOfWorkMock.Setup(u => u.Repository<BillExtractionResult>()).Returns(_extractionResultRepositoryMock.Object);
 
         _handler = new CreateBillHandler(
             _builderFactoryMock.Object,
@@ -54,32 +51,31 @@ public class CreateBillHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WhenSuccess_ShouldPersistBillAndExtractionResult()
+    public async Task Handle_WhenSuccess_ShouldPersistBill()
     {
         // Arrange
         var userId = Guid.NewGuid();
         var imgUrl = "test.jpg";
         var command = new CreateBillCommand { UserId = userId, ImgUrl = imgUrl };
-        
+
         var ocrResult = new ImageProcessResult
         {
-            Vendor = new ExtractedVendor { Name = new ExtractedValue<string?> { Value = "Old Merchant" } },
+            Vendor = new ExtractedVendor { Name = new ExtractedValue<string?> { Value = "Test Merchant" } },
             Total = new ExtractedValue<decimal?> { Value = 100m }
         };
 
         _cachingServiceMock.Setup(c => c.GetAsync<ImageProcessResult>(It.IsAny<string>()))
             .ReturnsAsync(ocrResult);
 
-        var bill = new Bill { Id = Guid.NewGuid(), MerchantName = "Old Merchant" };
-        var extractionResult = new BillExtractionResult { IsMerchantNameCorrect = true };
+        var bill = new Bill { Id = Guid.NewGuid(), MerchantName = "Test Merchant" };
 
         var billBuilderMock = new Mock<IBillBuilder>();
         billBuilderMock.Setup(b => b.FromProcessResult(ocrResult)).Returns(billBuilderMock.Object);
         billBuilderMock.Setup(b => b.WithUserId(userId)).Returns(billBuilderMock.Object);
         billBuilderMock.Setup(b => b.WithImgUrl(imgUrl)).Returns(billBuilderMock.Object);
+        billBuilderMock.Setup(b => b.WithExtractionMethod(It.IsAny<ExtractionMethod>())).Returns(billBuilderMock.Object);
         billBuilderMock.Setup(b => b.WithUserEdits(command.UserEdits)).Returns(billBuilderMock.Object);
         billBuilderMock.Setup(b => b.Build()).Returns(bill);
-        billBuilderMock.Setup(b => b.GetExtractionResult()).Returns(extractionResult);
 
         _builderFactoryMock.Setup(f => f.Builder<IBillBuilder>()).Returns(billBuilderMock.Object);
 
@@ -89,48 +85,6 @@ public class CreateBillHandlerTests
         // Assert
         result.BillId.Should().Be(bill.Id);
         _billRepositoryMock.Verify(r => r.Insert(bill), Times.Once);
-        _extractionResultRepositoryMock.Verify(r => r.Insert(It.Is<BillExtractionResult>(er => er.BillId == bill.Id)), Times.Once);
         _unitOfWorkMock.Verify(u => u.CommitAsync(), Times.Once);
-    }
-
-    [Fact]
-    public async Task Handle_WhenUserEditsDiffer_ShouldFlagIncorrectExtraction()
-    {
-        // Arrange
-        var userId = Guid.NewGuid();
-        var imgUrl = "test.jpg";
-        var command = new CreateBillCommand 
-        { 
-            UserId = userId, 
-            ImgUrl = imgUrl,
-            UserEdits = new UserEditsDto { MerchantName = "New Merchant" } 
-        };
-        
-        var ocrResult = new ImageProcessResult
-        {
-            Vendor = new ExtractedVendor { Name = new ExtractedValue<string?> { Value = "Old Merchant" } }
-        };
-
-        _cachingServiceMock.Setup(c => c.GetAsync<ImageProcessResult>(It.IsAny<string>()))
-            .ReturnsAsync(ocrResult);
-
-        var bill = new Bill { Id = Guid.NewGuid(), MerchantName = "New Merchant" };
-        var extractionResult = new BillExtractionResult { IsMerchantNameCorrect = false };
-
-        var billBuilderMock = new Mock<IBillBuilder>();
-        billBuilderMock.Setup(b => b.FromProcessResult(ocrResult)).Returns(billBuilderMock.Object);
-        billBuilderMock.Setup(b => b.WithUserId(userId)).Returns(billBuilderMock.Object);
-        billBuilderMock.Setup(b => b.WithImgUrl(imgUrl)).Returns(billBuilderMock.Object);
-        billBuilderMock.Setup(b => b.WithUserEdits(command.UserEdits)).Returns(billBuilderMock.Object);
-        billBuilderMock.Setup(b => b.Build()).Returns(bill);
-        billBuilderMock.Setup(b => b.GetExtractionResult()).Returns(extractionResult);
-
-        _builderFactoryMock.Setup(f => f.Builder<IBillBuilder>()).Returns(billBuilderMock.Object);
-
-        // Act
-        await _handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        _extractionResultRepositoryMock.Verify(r => r.Insert(It.Is<BillExtractionResult>(er => er.IsMerchantNameCorrect == false)), Times.Once);
     }
 }

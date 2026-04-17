@@ -9,12 +9,9 @@ namespace Business.Builders;
 public class BillItemBuilder : IBillItemBuilder
 {
     private BillItem _item = new();
-    private BillItemExtractionResult _extractionResult = new();
 
     public IBillItemBuilder WithName(string? name)
     {
-        if (name != null && name != _extractionResult.ExtractedItemName)
-            _extractionResult.IsItemNameCorrect = false;
         _item.ItemName = name ?? _item.ItemName;
         return this;
     }
@@ -27,24 +24,18 @@ public class BillItemBuilder : IBillItemBuilder
 
     public IBillItemBuilder WithQuantity(decimal? quantity)
     {
-        if (quantity != null && quantity != _extractionResult.ExtractedQuantity)
-            _extractionResult.IsQuantityCorrect = false;
         _item.Quantity = quantity ?? _item.Quantity;
         return this;
     }
 
     public IBillItemBuilder WithUnitPrice(decimal? unitPrice)
     {
-        if (unitPrice != null && unitPrice != _extractionResult.ExtractedUnitPrice)
-            _extractionResult.IsUnitPriceCorrect = false;
         _item.UnitPrice = unitPrice ?? _item.UnitPrice;
         return this;
     }
 
     public IBillItemBuilder WithTotalPrice(decimal? totalPrice)
     {
-        if (totalPrice != null && totalPrice != _extractionResult.ExtractedTotalPrice)
-            _extractionResult.IsTotalPriceCorrect = false;
         _item.TotalPrice = totalPrice ?? _item.TotalPrice;
         return this;
     }
@@ -58,23 +49,5 @@ public class BillItemBuilder : IBillItemBuilder
             .WithTotalPrice(dto.TotalPrice);
     }
 
-    public IBillItemBuilder FromExtractedResult(BillItemExtractionResult result)
-    {
-        _extractionResult = result;
-        _item.ItemName = result.ExtractedItemName ?? "Unknown";
-        _item.Quantity = result.ExtractedQuantity ?? 1;
-        _item.UnitPrice = result.ExtractedUnitPrice ?? 0;
-        _item.TotalPrice = result.ExtractedTotalPrice ?? 0;
-
-        // Initialize flags to true initially
-        _extractionResult.IsItemNameCorrect = true;
-        _extractionResult.IsQuantityCorrect = true;
-        _extractionResult.IsUnitPriceCorrect = true;
-        _extractionResult.IsTotalPriceCorrect = true;
-
-        return this;
-    }
-
     public BillItem Build() => _item;
-    public BillItemExtractionResult GetExtractionResult() => _extractionResult;
 }

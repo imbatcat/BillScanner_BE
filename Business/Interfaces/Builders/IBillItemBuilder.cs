@@ -11,6 +11,4 @@ public interface IBillItemBuilder : IBuilder<BillItem>
     IBillItemBuilder WithUnitPrice(decimal? unitPrice);
     IBillItemBuilder WithTotalPrice(decimal? totalPrice);
     IBillItemBuilder FromDto(BillItemDto dto);
-    IBillItemBuilder FromExtractedResult(BillItemExtractionResult result);
-    BillItemExtractionResult GetExtractionResult();
 }

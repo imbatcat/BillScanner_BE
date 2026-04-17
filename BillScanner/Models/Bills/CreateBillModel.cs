@@ -9,5 +9,5 @@ public record CreateBillModel
     public string ImgUrl { get; init; } = null!;
     public ExtractionMethod ExtractionMethod { get; init; }
     public UserEditsDto UserEdits { get; init; } = null!;
-    public ImageProcessResult RawExtraction { get; init; } = null!;
+    public ImageProcessResult? RawExtraction { get; init; } = null!;
 };

@@ -29,12 +29,8 @@ public class CreateBillHandler(
             .WithUserEdits(request.UserEdits);
 
         var bill = billBuilder.Build();
-        var extractionResult = billBuilder.GetExtractionResult();
 
         unitOfWork.Repository<Bill>().Insert(bill);
-
-        extractionResult.BillId = bill.Id;
-        unitOfWork.Repository<BillExtractionResult>().Insert(extractionResult);
 
         await unitOfWork.CommitAsync();
 

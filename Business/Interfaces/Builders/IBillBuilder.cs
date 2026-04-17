@@ -20,5 +20,4 @@ public interface IBillBuilder : IBuilder<Bill>
     IBillBuilder WithCurrency(string? currency);
     IBillBuilder WithExtractionMethod(ExtractionMethod method);
     IBillBuilder WithItems(List<BillItemDto> items);
-    BillExtractionResult GetExtractionResult();
 }
