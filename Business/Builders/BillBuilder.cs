@@ -8,7 +8,7 @@ namespace Business.Builders;
 [UsedImplicitly]
 public class BillBuilder(IBuilderFactory builderFactory) : IBillBuilder
 {
-    private Bill _bill = new();
+    private Bill _bill = new() { PaymentTransaction = new() };
     private BillExtractionResult _extractionResult = new();
     private readonly List<BillItemExtractionResult> _itemExtractionResults = [];
 
@@ -51,6 +51,7 @@ public class BillBuilder(IBuilderFactory builderFactory) : IBillBuilder
         if (total != null && total != _extractionResult.ExtractedTransactionAmount)
             _extractionResult.IsTransactionAmountCorrect = false;
         _bill.Total = total ?? _bill.Total;
+        _bill.PaymentTransaction!.TransactionAmount = total ?? 0;
         return this;
     }
 
@@ -63,6 +64,23 @@ public class BillBuilder(IBuilderFactory builderFactory) : IBillBuilder
     public IBillBuilder WithTax(decimal? tax)
     {
         _bill.Tax = tax ?? _bill.Tax;
+        return this;
+    }
+
+    public IBillBuilder WithCurrency(string? currency)
+    {
+        if (currency != null && currency != _extractionResult.ExtractedCurrency)
+            _extractionResult.IsCurrencyCorrect = false;
+
+        if (currency != null)
+            _bill.PaymentTransaction!.Currency = currency;
+
+        return this;
+    }
+
+    public IBillBuilder WithExtractionMethod(ExtractionMethod method)
+    {
+        _bill.ExtractionMethod = method;
         return this;
     }
 
@@ -81,14 +99,17 @@ public class BillBuilder(IBuilderFactory builderFactory) : IBillBuilder
 
     public IBillBuilder WithUserEdits(UserEditsDto dto)
     {
-        return this
+        var builder = this
             .WithMerchant(dto.MerchantName)
             .WithDate(dto.BillDate)
             .WithTime(dto.BillTime)
             .WithTotal(dto.Total)
             .WithSubTotal(dto.SubTotal)
             .WithTax(dto.Tax)
+            .WithCurrency(dto.Currency)
             .WithItems(dto.Items);
+
+        return builder;
     }
 
     public IBillBuilder FromProcessResult(Handlers.Images.ProcessImage.Dto.ImageProcessing.ImageProcessResult result)
@@ -122,6 +143,10 @@ public class BillBuilder(IBuilderFactory builderFactory) : IBillBuilder
         _bill.SubTotal = result.SubTotal.Value;
         _bill.Tax = result.Tax.Value;
         _bill.Total = _extractionResult.ExtractedTransactionAmount;
+        _bill.ExtractionMethod = ExtractionMethod.Ocr;
+
+        _bill.PaymentTransaction!.Currency = _extractionResult.ExtractedCurrency ?? _bill.PaymentTransaction.Currency;
+        _bill.PaymentTransaction.TransactionAmount = _bill.Total ?? 0;
 
         _bill.BillItems = result.Items.Select(i =>
         {

@@ -13,14 +13,14 @@ namespace Infrastructure.Efcore.Configurations
             builder.Property(e => e.UserId)
                 .IsRequired();
 
+            builder.Property(e => e.MerchantName)
+                .HasMaxLength(255);
+
             builder.Property(e => e.ExtractionMethod)
                 .IsRequired()
                 .HasConversion(
                     v => v.ToString(),
                     v => Enum.Parse<ExtractionMethod>(v));
-
-            builder.Property(e => e.MerchantName)
-                .HasMaxLength(255);
 
             builder.Property(e => e.BillDate)
                 .IsRequired()

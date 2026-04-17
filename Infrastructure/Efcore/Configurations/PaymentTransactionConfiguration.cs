@@ -13,12 +13,6 @@ namespace Infrastructure.Efcore.Configurations
             builder.Property(e => e.BillId)
                 .IsRequired();
 
-            builder.Property(e => e.PaymentType)
-                .IsRequired()
-                .HasConversion(
-                    v => v.ToString(),
-                    v => Enum.Parse<PaymentType>(v));
-
             builder.Property(e => e.BankId);
 
             builder.HasOne(e => e.Bank)
@@ -26,7 +20,7 @@ namespace Infrastructure.Efcore.Configurations
                 .HasForeignKey(e => e.BankId)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            builder.Property(e => e.BankAccount)
+            builder.Property(e => e.BankNumber)
                 .HasMaxLength(34);
 
             builder.Property(e => e.AccountHolder)

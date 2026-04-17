@@ -29,11 +29,7 @@ namespace Domain.Entities
 
     public enum ExtractionMethod
     {
-        Qr,
-
         Ocr,
-
         Manual
     }
-
 }

@@ -25,6 +25,7 @@ public class CreateBillHandler(
             .FromProcessResult(result)
             .WithUserId(request.UserId)
             .WithImgUrl(request.ImgUrl)
+            .WithExtractionMethod(request.ExtractionMethod)
             .WithUserEdits(request.UserEdits);
 
         var bill = billBuilder.Build();

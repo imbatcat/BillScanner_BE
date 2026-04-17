@@ -15,12 +15,8 @@ namespace Domain.Entities
         public decimal? BillTimeConfidence { get; set; }
         public bool? IsBillTimeCorrect { get; set; }
         public string? ExtractedCurrency { get; set; }
-        public decimal? CurrencyConfidence { get; set; }
+        public decimal? CurrencyConfidence { get; set; }        
         public bool? IsCurrencyCorrect { get; set; }
-
-        public string? ExtractedPaymentType { get; set; }
-        public decimal? PaymentTypeConfidence { get; set; }
-        public bool? IsPaymentTypeCorrect { get; set; }
 
         public decimal? ExtractedTransactionAmount { get; set; }
         public decimal? TransactionAmountConfidence { get; set; }
