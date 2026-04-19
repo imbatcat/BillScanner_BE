@@ -16,10 +16,14 @@ public class CreateBillHandler(
 {
     public async Task<CreateBillResponse> Handle(CreateBillCommand request, CancellationToken cancellationToken)
     {
-        var result =
-            await cachingService.GetAsync<ImageProcessResult>(
-                CacheKeys.GetProcessResultCacheKey(request.UserId, request.ImgUrl)) ??
-            throw new InvalidOperationException("No result found for the given user and image URL.");
+        ImageProcessResult result = null!;
+        if (request.ImgUrl != null)
+        {
+            result =
+                await cachingService.GetAsync<ImageProcessResult>(
+                    CacheKeys.GetProcessResultCacheKey(request.UserId, request.ImgUrl)) ??
+                throw new InvalidOperationException("No result found for the given user and image URL.");
+        }
 
         var billBuilder = builderFactory.Builder<IBillBuilder>()
             .FromProcessResult(result)
