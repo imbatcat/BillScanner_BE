@@ -21,15 +21,15 @@ namespace Business.Handlers.Images.ProcessImage
                 request.IsInvoice
             );
 
-            var missingFields = ValidateMissingFields(result);
-            ValidateTotalPrice(result);
+            // var missingFields = ValidateMissingFields(result);
+            // ValidateTotalPrice(result);
 
             await cachingService.SetAsync(
                 CacheKeys.GetProcessResultCacheKey(request.UserId, request.Url),
                 result,
                 TimeSpan.FromMinutes(settings.Value.CacheExpirationTimeInMinutes));
 
-            return new ProcessImageResponse(result, missingFields);
+            return new ProcessImageResponse(request.Url, result);
         }
 
         // private static void ValidateInvoiceDate(ImageProcessResult result, ProcessImageCommand request)
