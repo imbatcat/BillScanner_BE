@@ -31,7 +31,7 @@ namespace Infrastructure.Efcore.Configurations
             builder.Property(e => e.ImgUrl)
                 .HasMaxLength(2048);
 
-            builder.Property(e => e.MerchantBank)
+            builder.Property(e => e.MerchantBankName)
                 .HasMaxLength(100);
 
             builder.Property(e => e.MerchantBankNumber)

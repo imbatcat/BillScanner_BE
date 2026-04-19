@@ -13,7 +13,7 @@ public interface IBillBuilder : IBuilder<Bill>
     IBillBuilder WithDate(DateOnly date);
     IBillBuilder WithTime(TimeSpan? time);
     IBillBuilder WithUserId(Guid userId);
-    IBillBuilder WithImgUrl(string url);
+    IBillBuilder WithImgUrl(string? url);
     IBillBuilder WithTotal(decimal? total);
     IBillBuilder WithSubTotal(decimal? subTotal);
     IBillBuilder WithTax(decimal? tax);

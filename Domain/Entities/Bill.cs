@@ -13,7 +13,7 @@ namespace Domain.Entities
 
         public string? MerchantName { get; set; }
 
-        public string? MerchantBank { get; set; }
+        public string? MerchantBankName { get; set; }
 
         public string? MerchantBankNumber { get; set; }
 

@@ -34,7 +34,7 @@ public class BillBuilder(IBuilderFactory builderFactory) : IBillBuilder
         return this;
     }
 
-    public IBillBuilder WithImgUrl(string url)
+    public IBillBuilder WithImgUrl(string? url)
     {
         _bill.ImgUrl = url;
         return this;
@@ -67,7 +67,7 @@ public class BillBuilder(IBuilderFactory builderFactory) : IBillBuilder
 
     public IBillBuilder WithMerchantBank(string? bank)
     {
-        _bill.MerchantBank = bank ?? _bill.MerchantBank;
+        _bill.MerchantBankName = bank ?? _bill.MerchantBankName;
         return this;
     }
 
@@ -99,7 +99,7 @@ public class BillBuilder(IBuilderFactory builderFactory) : IBillBuilder
     {
         return this
             .WithMerchant(dto.MerchantName)
-            .WithMerchantBank(dto.MerchantBank)
+            .WithMerchantBank(dto.MerchantBankName)
             .WithMerchantBankNumber(dto.MerchantBankNumber)
             .WithDate(dto.BillDate)
             .WithTime(dto.BillTime)
