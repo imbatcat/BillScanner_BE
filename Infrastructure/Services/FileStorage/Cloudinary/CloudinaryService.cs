@@ -17,10 +17,11 @@ namespace Infrastructure.Services.FileStorage.Cloudinary
             var folder = isInvoice
                 ? $"{_configuration.Value.InvoiceFolderName}"
                 : _configuration.Value.ReceiptFolderName;
-            var parameters = new Dictionary<string, object>
+            var parameters = new SortedDictionary<string, object>
             {
                 { "asset_folder", folder },
-                { "timestamp", timestamp }
+                { "timestamp", timestamp },
+                { "return_delete_token", "true" }
             };
 
             var signature = _cloudinary.Api.SignParameters(parameters);
@@ -29,8 +30,7 @@ namespace Infrastructure.Services.FileStorage.Cloudinary
                 Signature: signature,
                 Timestamp: timestamp,
                 ApiKey: _cloudinary.Api.Account.ApiKey,
-                Folder: folder,
-                CloudName: _cloudinary.Api.Account.Cloud
+                Folder: folder
             ));
         }
     }

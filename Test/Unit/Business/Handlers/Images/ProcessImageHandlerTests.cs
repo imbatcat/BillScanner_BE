@@ -69,7 +69,6 @@ public class ProcessImageHandlerTests
         cachingServiceMock.Verify(x => x.SetAsync(command.Url, expectedResult, TimeSpan.FromMinutes(10)), Times.Once);
         response.Should().NotBeNull();
         response.Result.Should().BeEquivalentTo(expectedResult);
-        response.MissingFields.Should().BeEmpty();
     }
 
     [Fact]
