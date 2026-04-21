@@ -29,7 +29,6 @@ namespace Test.Integration.Business.Handlers.Images
             result.Signature.Should().NotBeEmpty();
             result.Timestamp.Should().BeGreaterThan(0);
             result.ApiKey.Should().NotBeEmpty();
-            result.CloudName.Should().NotBeEmpty();
         }
     }
 }

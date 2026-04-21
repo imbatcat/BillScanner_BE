@@ -8,6 +8,7 @@ using Business.Handlers.Authentication.Register.Dto;
 using BillScanner.Models;
 using Business.Handlers.Authentication.Logout.Dto;
 using System.ComponentModel.DataAnnotations;
+using Business.Handlers.Authentication.RefreshToken.Dto;
 
 namespace BillScanner.Controllers
 {
@@ -76,6 +77,26 @@ namespace BillScanner.Controllers
 
             var response = await mediator.Send(query);
 
+            return Ok(response);
+        }
+
+        /// <summary>
+        /// Exchange a refresh token for a new access token and rotated refresh token
+        /// </summary>
+        [AllowAnonymous]
+        [HttpPost("refresh")]
+        [ProducesResponseType(typeof(RefreshTokenResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<RefreshTokenResponse>> Refresh([FromBody] RefreshTokenRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.RefreshToken))
+            {
+                return UnauthorizedWithMessage("Refresh token is required");
+            }
+
+            var command = new RefreshTokenCommand { RefreshToken = request.RefreshToken };
+            var response = await mediator.Send(command);
             return Ok(response);
         }
 

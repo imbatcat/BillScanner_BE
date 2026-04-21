@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
 using Business.Interfaces.Services;
 using Domain.Entities;
@@ -87,10 +86,8 @@ namespace Infrastructure.Services
         {
             var jwtSettings = configuration.GetSection("JwtRefreshTokenSettings");
 
-            var number = new byte[32];
-            using var rng = RandomNumberGenerator.Create();
-            rng.GetBytes(number);
-            var securityKey = new SymmetricSecurityKey(number);
+            string secretKey = jwtSettings["Secret"]!;
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
 
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
             var tokenDescriptor = new SecurityTokenDescriptor
@@ -132,39 +129,32 @@ namespace Infrastructure.Services
         {
             try
             {
+                var jwtSettings = configuration.GetSection("JwtRefreshTokenSettings");
+                string secretKey = jwtSettings["Secret"]!;
+
                 var handler = new JsonWebTokenHandler();
+                var result = await handler.ValidateTokenAsync(refreshToken, new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
+                    ValidateIssuer = true,
+                    ValidIssuer = jwtSettings["Issuer"],
+                    ValidateAudience = false,
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero
+                });
 
-                var jsonToken = handler.ReadJsonWebToken(refreshToken);
-                var userIdClaim = jsonToken.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub);
-
-                if (userIdClaim == null)
+                if (!result.IsValid)
                 {
                     return null;
                 }
 
-                var userId = userIdClaim.Value;
-                if (!Guid.TryParse(userId, out var guidUserId))
+                result.Claims.TryGetValue(JwtRegisteredClaimNames.Sub, out var userIdObj);
+                var userId = userIdObj?.ToString();
+
+                if (!Guid.TryParse(userId, out _))
                 {
                     return null;
-                }
-
-                var user = await unitOfWork.Repository<User>().GetByIdAsync(guidUserId);
-
-                if (user == null /*|| user.RefreshToken != refreshToken*/)
-                {
-                    return null;
-                }
-
-                var expirationClaim = jsonToken.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Exp);
-                if (expirationClaim != null)
-                {
-                    var exp = long.Parse(expirationClaim.Value);
-                    var expirationTime = DateTimeOffset.FromUnixTimeSeconds(exp).DateTime;
-
-                    if (DateTime.UtcNow > expirationTime)
-                    {
-                        return null;
-                    }
                 }
 
                 return userId;
