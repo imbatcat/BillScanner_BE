@@ -24,6 +24,7 @@ namespace Domain.Entities
         public decimal? Tax { get; set; }
 
         public decimal? Total { get; set; }
+        
 
         public ICollection<BillItem> BillItems { get; set; } = [];
 
@@ -32,11 +33,19 @@ namespace Domain.Entities
         public string? ImgUrl { get; set; }
 
         public ExtractionMethod ExtractionMethod { get; set; }
+
+        public BillStatus Status { get; set; } = BillStatus.Unprocessed;
     }
 
     public enum ExtractionMethod
     {
         Ocr,
         Manual
+    }
+
+    public enum BillStatus
+    {
+        Unprocessed,
+        Processed
     }
 }

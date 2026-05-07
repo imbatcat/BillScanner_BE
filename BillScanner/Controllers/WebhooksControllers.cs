@@ -16,6 +16,9 @@ namespace BillScanner.Controllers
         case "upload":
           Console.WriteLine($"Upload completed: {notification.PublicId}");
           break;
+        case "delete_by_token":
+          Console.WriteLine($"Delete by token completed: {notification.PublicId}");
+          break;
       }
 
       return Ok();
