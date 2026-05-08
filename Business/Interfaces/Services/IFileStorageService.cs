@@ -4,6 +4,6 @@ namespace Business.Interfaces.Services
 {
     public interface IFileStorageService
     {
-        public Task<GetUploadStorageSignatureResponse> GetUploadStorageSignatureAsync(bool isInvoice);
+        public Task<GetUploadStorageSignatureResponse> GetUploadStorageSignatureAsync(bool isInvoice, Guid userId);
     }
 }

@@ -83,6 +83,12 @@ public class BillBuilder(IBuilderFactory builderFactory) : IBillBuilder
         return this;
     }
 
+    public IBillBuilder WithStatus(BillStatus status)
+    {
+        _bill.Status = status;
+        return this;
+    }
+
     public IBillBuilder WithItems(List<BillItemDto> items)
     {
         if (items is not { Count: > 0 }) return this;

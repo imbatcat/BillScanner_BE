@@ -11,7 +11,9 @@ namespace Business.Handlers.Images.GetUploadStorageSignature
         public async Task<GetUploadStorageSignatureResponse> Handle(GetUploadStorageSignatureRequest request,
             CancellationToken cancellationToken)
         {
-            return await _fileStorageService.GetUploadStorageSignatureAsync(request.IsInvoice);
+            return await _fileStorageService.GetUploadStorageSignatureAsync(
+                request.IsInvoice,
+                request.UserId);
         }
     }
 }

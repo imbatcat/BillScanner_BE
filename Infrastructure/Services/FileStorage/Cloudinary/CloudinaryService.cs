@@ -11,7 +11,7 @@ namespace Infrastructure.Services.FileStorage.Cloudinary
         IOptions<CloudinarySettings> _configuration,
         CloudinaryDotNet.Cloudinary _cloudinary) : IFileStorageService, ISingletonService
     {
-        public Task<GetUploadStorageSignatureResponse> GetUploadStorageSignatureAsync(bool isInvoice)
+        public Task<GetUploadStorageSignatureResponse> GetUploadStorageSignatureAsync(bool isInvoice, Guid userId)
         {
             var timestamp = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
             var folder = isInvoice
@@ -19,6 +19,7 @@ namespace Infrastructure.Services.FileStorage.Cloudinary
                 : _configuration.Value.ReceiptFolderName;
             var parameters = new SortedDictionary<string, object>
             {
+                { "context", $"user_id={userId}|is_invoice={isInvoice.ToString().ToLower()}" },
                 { "asset_folder", folder },
                 { "timestamp", timestamp },
                 { "return_delete_token", "true" }

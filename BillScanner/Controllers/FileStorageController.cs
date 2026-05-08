@@ -11,7 +11,8 @@ namespace BillScanner.Controllers
         public async Task<ActionResult<GetUploadStorageSignatureResponse>> GetUploadStorageSignature(
             [FromQuery] bool isInvoice)
         {
-            var result = await mediator.Send(new GetUploadStorageSignatureRequest(isInvoice));
+            var userId = GetUserId();
+            var result = await mediator.Send(new GetUploadStorageSignatureRequest(isInvoice, userId));
             return Ok(result);
         }
     }

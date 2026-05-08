@@ -41,6 +41,13 @@ namespace Infrastructure.Efcore.Configurations
                 .HasMaxLength(3)
                 .HasDefaultValue("VND");
 
+            builder.Property(e => e.Status)
+                .IsRequired()
+                .HasDefaultValue(BillStatus.Unprocessed)
+                .HasConversion(
+                    v => v.ToString(),
+                    v => Enum.Parse<BillStatus>(v));
+
             builder.HasMany(e => e.BillItems)
                 .WithOne(e => e.Bill)
                 .HasForeignKey(e => e.BillId)

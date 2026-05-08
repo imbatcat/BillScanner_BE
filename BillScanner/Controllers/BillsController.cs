@@ -2,6 +2,7 @@ using System.Security.Claims;
 using BillScanner.Controllers.Base;
 using BillScanner.Models.Bills;
 using Business.Handlers.Bills.CreateBill.Dto;
+using Business.Handlers.Bills.GetBillDetails;
 using Business.Handlers.Bills.GetBills.Dto;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -16,6 +17,13 @@ public class BillsController(IMediator mediator) : BaseApiController
         var userId = GetUserId();
         var result = await mediator.Send(new GetBillsQuery(userId, billParams));
         return Ok(ResultWithPagination(result.Items, result.Total, billParams.Page, billParams.Size));
+    }
+
+    [HttpGet("details")]
+    public async Task<IActionResult> GetBillDetails([FromQuery] string publicId)
+    {
+        var result = await mediator.Send(new GetBillDetailsQuery(GetUserId(), publicId));
+        return Ok(result);
     }
 
     [HttpPost]
