@@ -1,7 +1,8 @@
 using BillScanner.Controllers.Base;
+using Business.Handlers.FileStorage.DeleteImage;
+using Business.Handlers.Images.GetUploadStorageSignature.Dto;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Business.Handlers.Images.GetUploadStorageSignature.Dto;
 
 namespace BillScanner.Controllers
 {
@@ -14,6 +15,13 @@ namespace BillScanner.Controllers
             var userId = GetUserId();
             var result = await mediator.Send(new GetUploadStorageSignatureRequest(isInvoice, userId));
             return Ok(result);
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> DeleteImage([FromQuery] string imgUrl)
+        {
+            await mediator.Send(new DeleteImageCommand(GetUserId(), imgUrl));
+            return NoContent();
         }
     }
 }

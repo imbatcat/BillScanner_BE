@@ -3,7 +3,35 @@
     "allow": [
       "Bash(dotnet build *)",
       "Bash(dotnet ef *)",
-      "Bash(npx jest *)"
+      "Bash(npx jest *)",
+      "Bash(npx tsc *)",
+      "Read(//f/Projects/personal/BillScanner/FE/services/api/**)",
+      "Read(//f/Projects/personal/BillScanner/FE/features/auth/**)",
+      "Read(//f/Projects/personal/BillScanner/FE/features/auth/api/**)",
+      "Read(//f/Projects/personal/BillScanner/FE/features/auth/states/**)",
+      "Read(//f/Projects/personal/BillScanner/FE/hooks/**)",
+      "Read(//f/Projects/personal/BillScanner/FE/context/**)",
+      "Read(//f/Projects/personal/BillScanner/FE/features/bills/api/**)",
+      "Read(//f/Projects/personal/BillScanner/FE/features/bills/**)",
+      "Read(//f/Projects/personal/BillScanner/FE/features/images/**)",
+      "Read(//f/Projects/personal/BillScanner/FE/features/file-storage/api/**)",
+      "Read(//f/Projects/personal/BillScanner/FE/features/file-storage/**)",
+      "Read(//f/Projects/personal/BillScanner/FE/features/file-storage/hooks/**)",
+      "Read(//f/Projects/personal/BillScanner/FE/store/**)",
+      "Read(//f/Projects/personal/BillScanner/FE/services/cloudinary/**)",
+      "Read(//f/Projects/personal/BillScanner/FE/types/**)",
+      "Read(//f/Projects/personal/BillScanner/FE/utils/**)",
+      "Read(//f/Projects/personal/BillScanner/Billscanner-Web/**)",
+      "Read(//f/Projects/personal/BillScanner/BillScanner/**)",
+      "Read(//f/Projects/personal/BillScanner/**)",
+      "Bash(npm install *)",
+      "PowerShell(dotnet build *)",
+      "Bash(Get-ChildItem -Recurse -File \"F:\\\\Projects\\\\personal\\\\BillScanner\\\\Billscanner-Web\\\\src\")",
+      "Bash(Select-Object FullName)",
+      "Bash(Format-Table -HideTableHeaders)",
+      "Bash(grep -E \"\\\\.\\(tsx?|jsx?\\)$\")",
+      "Bash(Get-ChildItem -Path \"F:\\\\Projects\\\\personal\\\\BillScanner\\\\be\\\\Infrastructure\\\\Migrations\" -Filter \"*\" -Name)",
+      "Bash(Select-String \"Bill|Status\")"
     ]
   }
 }

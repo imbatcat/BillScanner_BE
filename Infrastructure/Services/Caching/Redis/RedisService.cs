@@ -37,4 +37,11 @@ public class RedisService(IConnectionMultiplexer connectionMultiplexer) : ICachi
     var db = connectionMultiplexer.GetDatabase();
     await db.KeyDeleteAsync(key);
   }
+
+  public Task<IEnumerable<string>> GetKeysByPatternAsync(string pattern)
+  {
+    var server = connectionMultiplexer.GetServer(connectionMultiplexer.GetEndPoints().First());
+    var keys = server.Keys(pattern: pattern).Select(k => k.ToString());
+    return Task.FromResult(keys);
+  }
 }

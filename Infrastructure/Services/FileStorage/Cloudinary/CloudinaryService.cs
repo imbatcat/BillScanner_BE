@@ -1,5 +1,6 @@
 using Business.Handlers.Images.GetUploadStorageSignature.Dto;
 using Business.Interfaces.Services;
+using CloudinaryDotNet.Actions;
 using Infrastructure.MarkerInterfaces;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Options;
@@ -11,6 +12,11 @@ namespace Infrastructure.Services.FileStorage.Cloudinary
         IOptions<CloudinarySettings> _configuration,
         CloudinaryDotNet.Cloudinary _cloudinary) : IFileStorageService, ISingletonService
     {
+        public async Task DeleteImageAsync(string publicId)
+        {
+            await _cloudinary.DestroyAsync(new DeletionParams(publicId));
+        }
+
         public Task<GetUploadStorageSignatureResponse> GetUploadStorageSignatureAsync(bool isInvoice, Guid userId)
         {
             var timestamp = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();

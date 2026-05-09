@@ -10,6 +10,6 @@ namespace Business.Handlers.Bills.GetBills.Dto
             SortBy = "billdate";
         }
 
-        public BillStatus? Status { get; set; }
+        public bool IsProcessed { get; set; } = true;
     }
 }

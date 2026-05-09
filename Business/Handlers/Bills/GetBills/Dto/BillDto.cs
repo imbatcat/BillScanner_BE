@@ -12,6 +12,5 @@ namespace Business.Handlers.Bills.GetBills.Dto
         public decimal? Total { get; init; }
         public string? ImgUrl { get; init; }
         public ExtractionMethod ExtractionMethod { get; init; }
-        public BillStatus Status { get; init; }
     }
 }

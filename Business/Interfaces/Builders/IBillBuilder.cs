@@ -19,6 +19,5 @@ public interface IBillBuilder : IBuilder<Bill>
     IBillBuilder WithTax(decimal? tax);
     IBillBuilder WithCurrency(string? currency);
     IBillBuilder WithExtractionMethod(ExtractionMethod method);
-    IBillBuilder WithStatus(BillStatus status);
     IBillBuilder WithItems(List<BillItemDto> items);
 }

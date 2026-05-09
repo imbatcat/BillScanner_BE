@@ -7,4 +7,6 @@ public interface ICachingService
     Task SetAsync<T>(string key, T value, TimeSpan? absoluteExpiration = null);
 
     Task RemoveAsync(string key);
+
+    Task<IEnumerable<string>> GetKeysByPatternAsync(string pattern);
 }

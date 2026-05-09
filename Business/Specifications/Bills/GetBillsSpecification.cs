@@ -6,8 +6,7 @@ namespace Business.Specifications.Bills
     public class GetBillsSpecification : BaseSpecification<Bill>
     {
         public GetBillsSpecification(Guid userId, BillParams p, bool applyPaging = true)
-            : base(b => b.UserId == userId
-                     && (p.Status == null || b.Status == p.Status))
+            : base(b => b.UserId == userId)
         {
             var descending = p.SortOrder.Equals("desc", StringComparison.OrdinalIgnoreCase);
 
