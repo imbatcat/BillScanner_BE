@@ -38,6 +38,9 @@ public class CreateBillHandler(
 
         await unitOfWork.CommitAsync();
 
+        if (request.ImgUrl != null)
+            await cachingService.RemoveAsync(CacheKeys.GetProcessResultCacheKey(request.UserId, request.ImgUrl));
+
         return new CreateBillResponse
         {
             BillId = bill.Id

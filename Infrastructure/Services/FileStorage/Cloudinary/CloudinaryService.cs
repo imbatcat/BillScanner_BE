@@ -28,7 +28,6 @@ namespace Infrastructure.Services.FileStorage.Cloudinary
                 { "context", $"user_id={userId}|is_invoice={isInvoice.ToString().ToLower()}" },
                 { "asset_folder", folder },
                 { "timestamp", timestamp },
-                { "return_delete_token", "true" }
             };
 
             var signature = _cloudinary.Api.SignParameters(parameters);
