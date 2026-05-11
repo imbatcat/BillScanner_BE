@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using Business.Common;
 using Business.Handlers.Bills.CreateBill.Dto;
 using Business.Handlers.Images.ProcessImage.Dto.ImageProcessing;
@@ -16,21 +18,24 @@ public class CreateBillHandler(
 {
     public async Task<CreateBillResponse> Handle(CreateBillCommand request, CancellationToken cancellationToken)
     {
-        ImageProcessResult result = null!;
-        if (request.ImgUrl != null)
-        {
-            result =
-                await cachingService.GetAsync<ImageProcessResult>(
-                    CacheKeys.GetProcessResultCacheKey(request.UserId, request.ImgUrl)) ??
-                throw new InvalidOperationException("No result found for the given user and image URL.");
-        }
-
         var billBuilder = builderFactory.Builder<IBillBuilder>()
-            .FromProcessResult(result)
             .WithUserId(request.UserId)
             .WithImgUrl(request.ImgUrl)
-            .WithExtractionMethod(request.ExtractionMethod)
-            .WithUserEdits(request.UserEdits);
+            .WithExtractionMethod(request.ExtractionMethod);
+
+        if (request.ExtractionMethod == ExtractionMethod.Ocr)
+        {
+            if (request.ImgUrl == null)
+                throw new InvalidOperationException("ImgUrl is required for OCR extraction.");
+
+            var result = await cachingService.GetAsync<ImageProcessResult>(
+                CacheKeys.GetProcessResultCacheKey(request.UserId, request.ImgUrl))
+                ?? throw new InvalidOperationException("No cached OCR result found.");
+
+            billBuilder.FromProcessResult(result);
+        }
+
+        billBuilder.WithUserEdits(request.UserEdits);
 
         var bill = billBuilder.Build();
 
@@ -39,7 +44,11 @@ public class CreateBillHandler(
         await unitOfWork.CommitAsync();
 
         if (request.ImgUrl != null)
+        {
             await cachingService.RemoveAsync(CacheKeys.GetProcessResultCacheKey(request.UserId, request.ImgUrl));
+            var stableId = new Guid(MD5.HashData(Encoding.UTF8.GetBytes(request.ImgUrl)));
+            await cachingService.RemoveAsync(CacheKeys.GetBillRefCacheKey(request.UserId, stableId));
+        }
 
         return new CreateBillResponse
         {

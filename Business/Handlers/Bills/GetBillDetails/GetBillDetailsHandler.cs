@@ -3,7 +3,6 @@ using Business.Handlers.Bills.GetBillDetails.Dto;
 using Business.Handlers.Images.ProcessImage.Dto.ImageProcessing;
 using Business.Interfaces.Repositories;
 using Business.Interfaces.Services;
-using Business.Specifications.Bills;
 using Domain.Entities;
 using MediatR;
 
@@ -18,23 +17,28 @@ public class GetBillDetailsHandler(
         GetBillDetailsQuery request,
         CancellationToken cancellationToken)
     {
-        var bill = await unitOfWork.Repository<Bill>()
-            .GetBySpecificationAsync(new GetBillByImgUrlSpecification(request.ImgUrl));
+        var bill = await unitOfWork.Repository<Bill>().GetByIdAsync(request.Id);
 
         if (bill is not null)
         {
             if (bill.UserId != request.UserId)
                 throw new UnauthorizedAccessException("The requested bill does not belong to the current user.");
 
-            return new GetBillDetailsResponse(request.ImgUrl, null, BillDto.From(bill));
+            return new GetBillDetailsResponse(bill.ImgUrl ?? string.Empty, null, BillDto.From(bill));
         }
 
+        var imgUrl = await cachingService.GetAsync<string>(
+            CacheKeys.GetBillRefCacheKey(request.UserId, request.Id));
+
+        if (imgUrl is null)
+            throw new KeyNotFoundException("Bill not found.");
+
         var result = await cachingService.GetAsync<ImageProcessResult>(
-            CacheKeys.GetProcessResultCacheKey(request.UserId, request.ImgUrl));
+            CacheKeys.GetProcessResultCacheKey(request.UserId, imgUrl));
 
         if (result is null)
             throw new KeyNotFoundException("Bill not found.");
 
-        return new GetBillDetailsResponse(request.ImgUrl, result, null);
+        return new GetBillDetailsResponse(imgUrl, result, null);
     }
 }

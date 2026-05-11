@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using Business.Common;
 using Business.Handlers.Bills.GetBills.Dto;
 using Business.Handlers.Images.ProcessImage.Dto.ImageProcessing;
@@ -54,9 +56,15 @@ namespace Business.Handlers.Bills.GetBills
                 var result = await cachingService.GetAsync<ImageProcessResult>(key);
                 if (result is null) return null;
 
+                var stableId = StableIdFromImgUrl(imgUrl);
+                await cachingService.SetAsync(
+                    CacheKeys.GetBillRefCacheKey(userId, stableId),
+                    imgUrl,
+                    TimeSpan.FromMinutes(10));
+
                 return new BillDto
                 {
-                    Id               = Guid.Empty,
+                    Id               = stableId,
                     BillDate         = result.BillDate.Value ?? DateOnly.MinValue,
                     BillTime         = result.BillTime.Value,
                     MerchantName     = result.Vendor.Name.Value,
@@ -68,6 +76,12 @@ namespace Business.Handlers.Bills.GetBills
             });
 
             return [..(await Task.WhenAll(tasks)).OfType<BillDto>()];
+        }
+
+        private static Guid StableIdFromImgUrl(string imgUrl)
+        {
+            var hash = MD5.HashData(Encoding.UTF8.GetBytes(imgUrl));
+            return new Guid(hash);
         }
     }
 }

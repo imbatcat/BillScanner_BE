@@ -12,6 +12,7 @@ public record BillDto(
     decimal? Total,
     decimal? SubTotal,
     decimal? Tax,
+    decimal Discount,
     string Currency,
     ExtractionMethod ExtractionMethod,
     List<BillItemDto> Items
@@ -27,6 +28,7 @@ public record BillDto(
         bill.Total,
         bill.SubTotal,
         bill.Tax,
+        bill.Discount,
         bill.Currency,
         bill.ExtractionMethod,
         bill.BillItems.Select(i => new BillItemDto(i.ItemName, i.Quantity, i.UnitPrice, i.TotalPrice)).ToList()

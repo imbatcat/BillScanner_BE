@@ -22,6 +22,10 @@ namespace Infrastructure.Efcore.Configurations
                     v => v.ToString(),
                     v => Enum.Parse<ExtractionMethod>(v));
 
+            builder.Property(e => e.Discount)
+                .HasColumnType("decimal(10, 2)")
+                .HasDefaultValue(0);
+
             builder.Property(e => e.BillDate)
                 .IsRequired()
                 .HasColumnType("date");

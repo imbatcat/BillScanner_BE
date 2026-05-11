@@ -58,6 +58,12 @@ public class BillBuilder(IBuilderFactory builderFactory) : IBillBuilder
         return this;
     }
 
+    public IBillBuilder WithDiscount(decimal? discount)
+    {
+        _bill.Discount = discount ?? _bill.Discount;
+        return this;
+    }
+
     public IBillBuilder WithCurrency(string? currency)
     {
         if (currency != null)
@@ -106,6 +112,7 @@ public class BillBuilder(IBuilderFactory builderFactory) : IBillBuilder
             .WithTotal(dto.Total)
             .WithSubTotal(dto.SubTotal)
             .WithTax(dto.Tax)
+            .WithDiscount(dto.Discount)
             .WithCurrency(dto.Currency)
             .WithItems(dto.Items);
     }

@@ -20,9 +20,9 @@ public class BillsController(IMediator mediator) : BaseApiController
     }
 
     [HttpGet("details")]
-    public async Task<IActionResult> GetBillDetails([FromQuery] string imgUrl)
+    public async Task<IActionResult> GetBillDetails([FromQuery] Guid id)
     {
-        var result = await mediator.Send(new GetBillDetailsQuery(GetUserId(), imgUrl));
+        var result = await mediator.Send(new GetBillDetailsQuery(GetUserId(), id));
         return Ok(result);
     }
 

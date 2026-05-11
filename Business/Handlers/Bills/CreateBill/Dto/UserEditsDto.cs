@@ -10,6 +10,7 @@ namespace Business.Handlers.Bills.CreateBill.Dto
         public decimal? Total { get; init; }
         public decimal? SubTotal { get; init; }
         public decimal? Tax { get; init; }
+        public decimal? Discount { get; init; }
         public string? Currency { get; init; }
         public List<BillItemDto> Items { get; init; } = [];
     }

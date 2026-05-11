@@ -11,6 +11,7 @@ namespace Domain.Entities
 
         public TimeSpan? BillTime { get; set; }
 
+        public decimal Discount { get; set; }
         public string? MerchantName { get; set; }
 
         public string? MerchantBankName { get; set; }
@@ -24,7 +25,7 @@ namespace Domain.Entities
         public decimal? Tax { get; set; }
 
         public decimal? Total { get; set; }
-        
+
 
         public ICollection<BillItem> BillItems { get; set; } = [];
 

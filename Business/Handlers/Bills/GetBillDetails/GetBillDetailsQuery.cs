@@ -3,5 +3,5 @@ using MediatR;
 
 namespace Business.Handlers.Bills.GetBillDetails;
 
-public record GetBillDetailsQuery(Guid UserId, string ImgUrl)
+public record GetBillDetailsQuery(Guid UserId, Guid Id)
     : IRequest<GetBillDetailsResponse>;
