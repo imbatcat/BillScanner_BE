@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="BillScanner/BillScanner.csproj" />
+  <Project Path="Business/Business.csproj" Id="bd954f69-f996-4c30-b02d-33e533a7a455" />
+  <Project Path="Domain/Domain.csproj" Id="295fad09-300a-4077-8431-f4334f652175" />
+  <Project Path="Infrastructure/Infrastructure.csproj" Id="d8426d7a-9220-409e-a7c2-d4419431f2d4" />
+</Solution>

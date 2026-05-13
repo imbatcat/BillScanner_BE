@@ -28,3 +28,12 @@ README.md
 !.git/config
 !.git/packed-refs
 !.git/refs/heads/**
+.claude/
+.claude_chat_history
+.temp/
+.tmp/
+.next/
+dist/
+build/
+obj/
+publish/
