@@ -10,7 +10,6 @@ pipeline {
         IMAGE_NAME = 'billscanner-api'
         DOCKER_BUILDKIT = '1' // use docker buildx
     }
-
     stages {
         stage('Pre-Build') {
             steps {
