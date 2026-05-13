@@ -26,7 +26,7 @@ pipeline {
             steps {
                 echo "Building..BillScanner API"
                 sh '''
-                    dotnet build BillScanner/BillScanner.slnx --property:WarningLevel=0 --configuration Release
+                    dotnet build BillScanner.slnx --property:WarningLevel=0 --configuration Release
                 '''
             }
         }
@@ -34,7 +34,7 @@ pipeline {
             steps {
                 echo "Testing.."
                 sh '''
-                    dotnet test BillScanner/BillScanner.slnx --no-build --configuration Release
+                    dotnet test BillScanner.slnx --no-build --configuration Release
                 '''
             }
         }
