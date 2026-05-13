@@ -26,7 +26,7 @@ pipeline {
             steps {
                 echo "Building.."
                 sh '''
-                    dotnet build --property:WarningLevel=0 --configuration Release
+                    dotnet build BillScanner.slnx --property:WarningLevel=0 --configuration Release
                 '''
             }
         }
