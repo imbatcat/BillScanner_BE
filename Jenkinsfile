@@ -2,7 +2,7 @@ def BUILD_SUCCESS = 'false'
 pipeline {
     agent {
         node {
-            label 'docker-agent-dotnet'
+            label 'docker-agent-dotnet10'
         }
     }
     environment {
