@@ -1,12 +1,10 @@
 using Business.Handlers.Authentication.Register.Dto;
-using Business.Handlers.Authentication.Register.Spec;
 using Business.Interfaces.Repositories;
 using Business.Interfaces.Services;
 using Domain.Entities;
 using MediatR;
 using System.Security.Cryptography;
 using System.Text;
-using Azure.Core;
 
 namespace Business.Handlers.Authentication.Register
 {

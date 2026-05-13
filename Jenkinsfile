@@ -24,9 +24,9 @@ pipeline {
         }
         stage('Build') {
             steps {
-                echo "Building.."
+                echo "Building..BillScanner API"
                 sh '''
-                    dotnet build BillScanner.slnx --property:WarningLevel=0 --configuration Release
+                    dotnet build BillScanner/BillScanner.slnx --property:WarningLevel=0 --configuration Release
                 '''
             }
         }
@@ -34,7 +34,7 @@ pipeline {
             steps {
                 echo "Testing.."
                 sh '''
-                    dotnet test --no-build --configuration Release
+                    dotnet test BillScanner/BillScanner.slnx --no-build --configuration Release
                 '''
             }
         }
@@ -123,7 +123,7 @@ pipeline {
             sshagent(['velour-ssh']) {
                 sh '''
                     ssh velour@ssh.velour-pie.io.vn "
-                        docker exec ntfy ntfy publish ntfy.velour-pie.io.vn/jenkins "FitBridge Build Success"
+                        docker exec ntfy ntfy publish ntfy.velour-pie.io.vn/jenkins "BillScanner API Build Success"
                     "
                 '''
             }
@@ -133,7 +133,7 @@ pipeline {
             sshagent(['velour-ssh']) {
                 sh '''
                     ssh velour@ssh.velour-pie.io.vn "
-                        docker exec ntfy ntfy publish ntfy.velour-pie.io.vn/jenkins "FitBridge Build Failed"
+                        docker exec ntfy ntfy publish ntfy.velour-pie.io.vn/jenkins "BillScanner API Build Failed"
                     "
                 '''
             }
