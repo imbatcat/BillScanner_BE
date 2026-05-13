@@ -16,15 +16,23 @@ namespace BillScanner.Controllers
       switch (notification.NotificationType)
       {
         case "upload":
+          if (notification.PublicId is null
+              || notification.SecureUrl is null
+              || notification.Context?.CustomFields.UserId is null)
+            return;
+
           await mediator.Send(new FileUploadedWebhookCommand
           {
             PublicId = notification.PublicId,
             Url = notification.SecureUrl,
             UserId = notification.Context.CustomFields.UserId,
-            IsInvoice = bool.TryParse(notification.Context?.CustomFields?.IsInvoice, out var inv) && inv,
+            IsInvoice = bool.TryParse(notification.Context?.CustomFields.IsInvoice, out var inv) && inv,
           });
           break;
         case "delete_by_token":
+          if (notification.PublicId is null)
+            return;
+
           await mediator.Send(new DeleteBillWebhookCommand
           {
             PublicId = notification.PublicId,

@@ -17,14 +17,14 @@ public class GetBillDetailsHandler(
         GetBillDetailsQuery request,
         CancellationToken cancellationToken)
     {
-        var bill = await unitOfWork.Repository<Bill>().GetByIdAsync(request.Id);
+        var bill = await unitOfWork.Repository<Bill>().GetByIdAsync(request.Id, includes: ["BillItems"]);
 
         if (bill is not null)
         {
             if (bill.UserId != request.UserId)
                 throw new UnauthorizedAccessException("The requested bill does not belong to the current user.");
 
-            return new GetBillDetailsResponse(bill.ImgUrl ?? string.Empty, null, BillDto.From(bill));
+            return new GetBillDetailsResponse(bill.ImgUrl ?? string.Empty, bill.ExtractionMethod, null, BillDto.From(bill));
         }
 
         var imgUrl = await cachingService.GetAsync<string>(
@@ -39,6 +39,6 @@ public class GetBillDetailsHandler(
         if (result is null)
             throw new KeyNotFoundException("Bill not found.");
 
-        return new GetBillDetailsResponse(imgUrl, result, null);
+        return new GetBillDetailsResponse(imgUrl, ExtractionMethod.Ocr, result, null);
     }
 }

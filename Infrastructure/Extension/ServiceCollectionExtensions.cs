@@ -12,6 +12,8 @@ using StackExchange.Redis;
 using Infrastructure.Services.Caching.Redis;
 using Azure.AI.DocumentIntelligence;
 using Infrastructure.Services.ImageProcessing;
+using Infrastructure.Services.ExchangeRates;
+using Business.Interfaces.Services;
 using Azure;
 
 namespace Infrastructure.Extension
@@ -89,6 +91,8 @@ namespace Infrastructure.Extension
                     new DocumentIntelligenceClientOptions();
                 return new DocumentIntelligenceClient(new Uri(settings.Endpoint), credential, options);
             });
+
+            services.AddHttpClient<IExchangeRateService, ExchangeRateService>();
         }
 
         public static void AddSettings(

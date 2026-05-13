@@ -17,6 +17,7 @@ public class CreateBillHandlerTests
     private readonly Mock<ICachingService> _cachingServiceMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly Mock<IGenericRepository<Bill>> _billRepositoryMock;
+    private readonly Mock<IExchangeRateService> _exchangeRateServiceMock;
     private readonly CreateBillHandler _handler;
 
     public CreateBillHandlerTests()
@@ -25,13 +26,15 @@ public class CreateBillHandlerTests
         _cachingServiceMock = new Mock<ICachingService>();
         _unitOfWorkMock = new Mock<IUnitOfWork>();
         _billRepositoryMock = new Mock<IGenericRepository<Bill>>();
+        _exchangeRateServiceMock = new Mock<IExchangeRateService>();
 
         _unitOfWorkMock.Setup(u => u.Repository<Bill>()).Returns(_billRepositoryMock.Object);
 
         _handler = new CreateBillHandler(
             _builderFactoryMock.Object,
             _cachingServiceMock.Object,
-            _unitOfWorkMock.Object);
+            _unitOfWorkMock.Object,
+            _exchangeRateServiceMock.Object);
     }
 
     [Fact]
