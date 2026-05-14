@@ -55,14 +55,16 @@ pipeline {
                                 echo "{\\"auths\\":{\\"https://index.docker.io/v1/\\":{\\"auth\\":\\"$AUTH\\"}}}" > ~/.docker/config.json
                             '''
 
-                            sh 'docker buildx rm default'
-                            sh 'docker buildx create --use'
+                            sh 'docker buildx create --use --driver docker-container --name billscanner-builder'
+                            
                             // Build and push
                             sh 'docker buildx version'
                             echo 'Building and pushing...'
                             sh '''
                                 IMAGE_TAG=$(git rev-parse HEAD | sha256sum | cut -d' ' -f1)
                                 docker buildx build \
+                                    --cache-from type=registry,ref=rutkre/billscanner-api:cache \
+                                    --cache-to type=registry,ref=rutkre/billscanner-api:cache,mode=max \
                                     --push \
                                     -t rutkre/billscanner-api:${IMAGE_TAG} \
                                     -t rutkre/billscanner-api:latest \
@@ -75,6 +77,7 @@ pipeline {
                         } finally {
                             // Cleanup
                             echo 'Cleaning up...'
+                            sh 'docker buildx rm billscanner-builder'
                             sh 'docker logout https://index.docker.io/v1/ && rm -f ~/.docker/config.json'
                         }
                     }
