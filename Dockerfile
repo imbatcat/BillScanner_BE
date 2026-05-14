@@ -15,7 +15,7 @@ COPY BillScanner/*.csproj BillScanner/
 ENV NUGET_PACKAGES=${NUGET_CACHE_PATH}
 
 RUN --mount=type=cache,id=nuget,target=${NUGET_CACHE_PATH} \
-    dotnet restore
+    dotnet restore BillScanner.deploy.slnx
 
 COPY . .
 
