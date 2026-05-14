@@ -20,21 +20,14 @@ RUN --mount=type=cache,id=nuget,target=${NUGET_CACHE_PATH} \
 COPY . .
 
 RUN --mount=type=cache,id=nuget,target=${NUGET_CACHE_PATH} \
-    dotnet build BillScanner/BillScanner.csproj \
-    --configuration Release \
-    --property:WarningLevel=0 \
-    --no-restore
-
-RUN --mount=type=cache,id=nuget,target=${NUGET_CACHE_PATH} \
     dotnet publish BillScanner/BillScanner.csproj \
     --configuration Release \
+    --property:WarningLevel=0 \
     --output /src/publish \
-    --no-restore \
-    --no-build
+    --no-restore
 
-FROM mcr.microsoft.com/dotnet/aspnet:${DOTNET_VERSION} AS final
-RUN apt-get update && apt-get install -y --no-install-recommends curl \
-    && rm -rf /var/lib/apt/lists/*
+FROM mcr.microsoft.com/dotnet/aspnet:${DOTNET_VERSION}-alpine AS final
+RUN apk add --no-cache curl
 
 WORKDIR /app
 COPY --from=build /src/publish .
