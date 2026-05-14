@@ -6,7 +6,7 @@ ARG NUGET_CACHE_PATH=/home/jenkins/.nuget
 FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION} AS build
 WORKDIR /src
 
-COPY *.deploy.slnx .
+COPY *.slnx .
 COPY Business/*.csproj Business/
 COPY Domain/*.csproj Domain/
 COPY Infrastructure/*.csproj Infrastructure/
