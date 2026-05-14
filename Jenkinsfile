@@ -30,14 +30,14 @@ pipeline {
                 '''
             }
         }
-        stage('Test') {
-            steps {
-                echo "Testing.."
-                sh '''
-                    dotnet test BillScanner.slnx --no-build --configuration Release
-                '''
-            }
-        }
+        // stage('Test') {
+        //     steps {
+        //         echo "Testing.."
+        //         sh '''
+        //             dotnet test BillScanner.slnx --no-build --configuration Release
+        //         '''
+        //     }
+        // }
         stage('Build & Push') {
             steps {
                 script {

@@ -23,7 +23,8 @@ public class GetUploadStorageSignatureHandlerTests
     public async Task Handle_ShouldReturnSignature_WhenServiceReturnsSuccess()
     {
         // Arrange
-        var request = new GetUploadStorageSignatureRequest(true);
+        var userId = Guid.NewGuid();
+        var request = new GetUploadStorageSignatureRequest(true, userId);
         var expectedResponse = new GetUploadStorageSignatureResponse(
             Signature: "test-signature",
             Timestamp: 123456789,
@@ -32,7 +33,7 @@ public class GetUploadStorageSignatureHandlerTests
         );
 
         fileStorageServiceMock
-            .Setup(x => x.GetUploadStorageSignatureAsync(request.IsInvoice))
+            .Setup(x => x.GetUploadStorageSignatureAsync(request.IsInvoice, request.UserId))
             .ReturnsAsync(expectedResponse);
 
         // Act
@@ -41,6 +42,6 @@ public class GetUploadStorageSignatureHandlerTests
         // Assert
         result.Should().NotBeNull();
         result.Should().BeEquivalentTo(expectedResponse);
-        fileStorageServiceMock.Verify(x => x.GetUploadStorageSignatureAsync(request.IsInvoice), Times.Once);
+        fileStorageServiceMock.Verify(x => x.GetUploadStorageSignatureAsync(request.IsInvoice, request.UserId), Times.Once);
     }
 }
