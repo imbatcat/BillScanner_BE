@@ -66,6 +66,8 @@ pipeline {
                                     --push \
                                     -t rutkre/billscanner-api:${IMAGE_TAG} \
                                     -t rutkre/billscanner-api:latest \
+                                    --build-arg BUILDKIT_INLINE_CACHE=1 \
+                                    --cache-from rutkre/billscanner-api:latest \
                                     .
                             '''
                         } catch (Exception e) {
