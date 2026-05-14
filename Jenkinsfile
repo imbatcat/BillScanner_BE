@@ -56,6 +56,7 @@ pipeline {
                             '''
 
                             // Build and push
+                            sh 'docker buildx version'
                             echo 'Building and pushing...'
                             sh '''
                                 IMAGE_TAG=$(git rev-parse HEAD | sha256sum | cut -d' ' -f1)
@@ -63,8 +64,6 @@ pipeline {
                                     --push \
                                     -t rutkre/billscanner-api:${IMAGE_TAG} \
                                     -t rutkre/billscanner-api:latest \
-                                    --build-arg BUILDKIT_INLINE_CACHE=1 \
-                                    --cache-from rutkre/billscanner-api:latest \
                                     .
                             '''
                         } catch (Exception e) {
