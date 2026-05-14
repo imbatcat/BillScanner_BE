@@ -6,9 +6,7 @@ ARG NUGET_CACHE_PATH=/home/jenkins/.nuget
 FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION} AS build
 WORKDIR /src
 
-RUN ls
-
-COPY BillScanner.deploy.slnx .
+COPY *.slnx .
 COPY Business/*.csproj Business/
 COPY Domain/*.csproj Domain/
 COPY Infrastructure/*.csproj Infrastructure/
@@ -17,7 +15,7 @@ COPY BillScanner/*.csproj BillScanner/
 ENV NUGET_PACKAGES=${NUGET_CACHE_PATH}
 
 RUN --mount=type=cache,id=nuget,target=${NUGET_CACHE_PATH} \
-    dotnet restore BillScanner.deploy.slnx
+    dotnet restore 
 
 COPY . .
 
