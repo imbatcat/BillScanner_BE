@@ -6,7 +6,15 @@ namespace Business.Specifications.Bills
     public class GetBillsSpecification : BaseSpecification<Bill>
     {
         public GetBillsSpecification(Guid userId, BillParams p, bool applyPaging = true)
-            : base(b => b.UserId == userId)
+            : base(b =>
+                b.UserId == userId
+                && (string.IsNullOrWhiteSpace(p.SearchTerm) || (b.MerchantName != null &&
+                                                                b.MerchantName.ToLower()
+                                                                    .Contains(p.SearchTerm.ToLower())))
+                && (!p.FromDate.HasValue || b.BillDate >= DateOnly.FromDateTime(p.FromDate.Value))
+                && (!p.ToDate.HasValue || b.BillDate <= DateOnly.FromDateTime(p.ToDate.Value))
+                && (!p.MinTotal.HasValue || b.Total >= p.MinTotal.Value)
+                && (!p.MaxTotal.HasValue || b.Total <= p.MaxTotal.Value))
         {
             var descending = p.SortOrder.Equals("desc", StringComparison.OrdinalIgnoreCase);
 
