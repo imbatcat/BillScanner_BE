@@ -2,6 +2,7 @@ using System.Security.Claims;
 using BillScanner.Controllers.Base;
 using BillScanner.Models.Bills;
 using Business.Handlers.Bills.CreateBill.Dto;
+using Business.Handlers.Bills.DeleteBill;
 using Business.Handlers.Bills.GetBillDetails;
 using Business.Handlers.Bills.GetBills.Dto;
 using Business.Handlers.Bills.UpdateBill;
@@ -57,6 +58,13 @@ public class BillsController(IMediator mediator) : BaseApiController
             Id        = id,
             UserEdits = model.UserEdits,
         });
+        return NoContent();
+    }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> DeleteBill(Guid id)
+    {
+        await mediator.Send(new DeleteBillCommand(GetUserId(), id));
         return NoContent();
     }
 }
