@@ -55,7 +55,7 @@ pipeline {
                                 echo "{\\"auths\\":{\\"https://index.docker.io/v1/\\":{\\"auth\\":\\"$AUTH\\"}}}" > ~/.docker/config.json
                             '''
 
-                            sh 'docker buildx create --use --driver docker-container --name billscanner-builder'
+                            sh 'docker buildx create --use --name billscanner-builder'
                             
                             // Build and push
                             sh 'docker buildx version'
