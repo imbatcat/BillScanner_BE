@@ -1,8 +1,5 @@
-using System.Security.Cryptography;
-using System.Text;
 using Business.Common;
 using Business.Handlers.Bills.GetBills.Dto;
-using Business.Handlers.Images.ProcessImage.Dto.ImageProcessing;
 using Business.Interfaces.Repositories;
 using Business.Interfaces.Services;
 using Business.Specifications.Bills;
@@ -18,7 +15,7 @@ namespace Business.Handlers.Bills.GetBills
         {
             if (request.Params.IsProcessed)
             {
-                var dataSpec  = new GetBillsSpecification(request.UserId, request.Params, applyPaging: true);
+                var dataSpec = new GetBillsSpecification(request.UserId, request.Params, applyPaging: true);
                 var countSpec = new GetBillsSpecification(request.UserId, request.Params, applyPaging: false);
 
                 var bills = await unitOfWork.Repository<Bill>().GetAllWithSpecificationAsync(dataSpec);
@@ -26,13 +23,13 @@ namespace Business.Handlers.Bills.GetBills
 
                 var dtos = bills.Select(b => new BillDto
                 {
-                    Id               = b.Id,
-                    BillDate         = b.BillDate,
-                    BillTime         = b.BillTime,
-                    MerchantName     = b.MerchantName,
-                    Currency         = b.Currency,
-                    Total            = b.Total,
-                    ImgUrl           = b.ImgUrl,
+                    Id = b.Id,
+                    BillDate = b.BillDate,
+                    BillTime = b.BillTime,
+                    MerchantName = b.MerchantName,
+                    Currency = b.Currency,
+                    Total = b.Total,
+                    ImgUrl = b.ImgUrl,
                     ExtractionMethod = b.ExtractionMethod,
                 }).ToList();
 
@@ -47,41 +44,30 @@ namespace Business.Handlers.Bills.GetBills
 
         private async Task<List<BillDto>> GetCachedBillDtosAsync(Guid userId)
         {
-            var prefix = CacheKeys.GetProcessResultCacheKey(userId, string.Empty);
+            var prefix = $"result:{userId}:";
             var keys = await cachingService.GetKeysByPatternAsync($"{prefix}*");
 
             var tasks = keys.Select(async key =>
             {
-                var imgUrl = key[prefix.Length..];
-                var result = await cachingService.GetAsync<ImageProcessResult>(key);
-                if (result is null) return null;
+                var cached = await cachingService.GetAsync<CachedOcrResult>(key);
+                if (cached is null) return null;
 
-                var stableId = StableIdFromImgUrl(imgUrl);
-                await cachingService.SetAsync(
-                    CacheKeys.GetBillRefCacheKey(userId, stableId),
-                    imgUrl,
-                    TimeSpan.FromMinutes(10));
+                Guid.TryParse(key[prefix.Length..], out var stableId);
 
                 return new BillDto
                 {
-                    Id               = stableId,
-                    BillDate         = result.BillDate.Value ?? DateOnly.MinValue,
-                    BillTime         = result.BillTime.Value,
-                    MerchantName     = result.Vendor.Name.Value,
-                    Currency         = result.Currency.Value ?? "VND",
-                    Total            = result.Total.Value,
-                    ImgUrl           = imgUrl,
+                    Id = stableId,
+                    BillDate = cached.Data.BillDate.Value ?? DateOnly.MinValue,
+                    BillTime = cached.Data.BillTime.Value,
+                    MerchantName = cached.Data.Vendor.Name.Value,
+                    Currency = cached.Data.Currency.Value ?? "VND",
+                    Total = cached.Data.Total.Value,
+                    ImgUrl = cached.ImageUrl,
                     ExtractionMethod = ExtractionMethod.Ocr,
                 };
             });
 
             return [..(await Task.WhenAll(tasks)).OfType<BillDto>()];
-        }
-
-        private static Guid StableIdFromImgUrl(string imgUrl)
-        {
-            var hash = MD5.HashData(Encoding.UTF8.GetBytes(imgUrl));
-            return new Guid(hash);
         }
     }
 }

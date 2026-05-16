@@ -1,6 +1,5 @@
 using Business.Common;
 using Business.Handlers.Bills.GetBillDetails.Dto;
-using Business.Handlers.Images.ProcessImage.Dto.ImageProcessing;
 using Business.Interfaces.Repositories;
 using Business.Interfaces.Services;
 using Domain.Entities;
@@ -27,18 +26,12 @@ public class GetBillDetailsHandler(
             return new GetBillDetailsResponse(bill.ImgUrl ?? string.Empty, bill.ExtractionMethod, null, BillDto.From(bill));
         }
 
-        var imgUrl = await cachingService.GetAsync<string>(
-            CacheKeys.GetBillRefCacheKey(request.UserId, request.Id));
+        var cached = await cachingService.GetAsync<CachedOcrResult>(
+            CacheKeys.GetProcessResultCacheKey(request.UserId, request.Id));
 
-        if (imgUrl is null)
+        if (cached is null)
             throw new KeyNotFoundException("Bill not found.");
 
-        var result = await cachingService.GetAsync<ImageProcessResult>(
-            CacheKeys.GetProcessResultCacheKey(request.UserId, imgUrl));
-
-        if (result is null)
-            throw new KeyNotFoundException("Bill not found.");
-
-        return new GetBillDetailsResponse(imgUrl, ExtractionMethod.Ocr, result, null);
+        return new GetBillDetailsResponse(cached.ImageUrl, ExtractionMethod.Ocr, cached.Data, null);
     }
 }

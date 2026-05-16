@@ -29,13 +29,13 @@ public class DeleteImageHandler(
             await unitOfWork.CommitAsync();
         }
 
-        await cachingService.RemoveAsync(CacheKeys.GetImageUrlCacheKey(publicId));
-        await cachingService.RemoveAsync(CacheKeys.GetProcessResultCacheKey(request.UserId, request.ImgUrl));
+        var resultId = CacheKeys.StableIdFromUrl(request.ImgUrl);
+        await cachingService.RemoveAsync(CacheKeys.GetProcessResultCacheKey(request.UserId, resultId));
     }
 
     private static string ExtractPublicId(string imgUrl)
     {
-        var afterUpload = imgUrl[(imgUrl.IndexOf("/upload/") + 8)..];
+        var afterUpload = imgUrl[(imgUrl.IndexOf("/upload/", StringComparison.Ordinal) + 8)..];
         afterUpload = Regex.Replace(afterUpload, @"^v\d+/", "");
         var dot = afterUpload.LastIndexOf('.');
         return dot >= 0 ? afterUpload[..dot] : afterUpload;

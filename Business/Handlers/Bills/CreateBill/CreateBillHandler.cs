@@ -1,8 +1,5 @@
-using System.Security.Cryptography;
-using System.Text;
 using Business.Common;
 using Business.Handlers.Bills.CreateBill.Dto;
-using Business.Handlers.Images.ProcessImage.Dto.ImageProcessing;
 using Business.Interfaces.Repositories;
 using Business.Interfaces.Builders;
 using Business.Interfaces.Services;
@@ -29,11 +26,12 @@ public class CreateBillHandler(
             if (request.ImgUrl == null)
                 throw new InvalidOperationException("ImgUrl is required for OCR extraction.");
 
-            var result = await cachingService.GetAsync<ImageProcessResult>(
-                CacheKeys.GetProcessResultCacheKey(request.UserId, request.ImgUrl))
+            var resultId = CacheKeys.StableIdFromUrl(request.ImgUrl);
+            var cached = await cachingService.GetAsync<CachedOcrResult>(
+                CacheKeys.GetProcessResultCacheKey(request.UserId, resultId))
                 ?? throw new InvalidOperationException("No cached OCR result found.");
 
-            billBuilder.FromProcessResult(result);
+            billBuilder.FromProcessResult(cached.Data);
         }
 
         billBuilder.WithUserEdits(request.UserEdits);
@@ -61,9 +59,8 @@ public class CreateBillHandler(
 
         if (request.ImgUrl != null)
         {
-            await cachingService.RemoveAsync(CacheKeys.GetProcessResultCacheKey(request.UserId, request.ImgUrl));
-            var stableId = new Guid(MD5.HashData(Encoding.UTF8.GetBytes(request.ImgUrl)));
-            await cachingService.RemoveAsync(CacheKeys.GetBillRefCacheKey(request.UserId, stableId));
+            var resultId = CacheKeys.StableIdFromUrl(request.ImgUrl);
+            await cachingService.RemoveAsync(CacheKeys.GetProcessResultCacheKey(request.UserId, resultId));
         }
 
         return new CreateBillResponse

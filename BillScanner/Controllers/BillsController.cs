@@ -4,6 +4,7 @@ using BillScanner.Models.Bills;
 using Business.Handlers.Bills.CreateBill.Dto;
 using Business.Handlers.Bills.GetBillDetails;
 using Business.Handlers.Bills.GetBills.Dto;
+using Business.Handlers.Bills.UpdateBill;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -45,5 +46,17 @@ public class BillsController(IMediator mediator) : BaseApiController
 
         var result = await mediator.Send(command);
         return Ok(result);
+    }
+
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> UpdateBill(Guid id, [FromBody] UpdateBillModel model)
+    {
+        await mediator.Send(new UpdateBillCommand
+        {
+            UserId    = GetUserId(),
+            Id        = id,
+            UserEdits = model.UserEdits,
+        });
+        return NoContent();
     }
 }
