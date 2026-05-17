@@ -5,7 +5,6 @@ pipeline {
             label 'docker-agent-dotnet10'
         }
     }
-
     environment {
         REGISTRY = 'rutkre'
         IMAGE_NAME = 'billscanner-api'
