@@ -56,7 +56,7 @@ pipeline {
                                 echo "{\\"auths\\":{\\"https://index.docker.io/v1/\\":{\\"auth\\":\\"$AUTH\\"}}}" > ~/.docker/config.json
                             '''
 
-                            sh 'docker buildx create --use --name billscanner-builder'
+                            //sh 'docker buildx create --use --name billscanner-builder'
                             
                             // Build and push
                             sh 'docker buildx version'
@@ -78,7 +78,7 @@ pipeline {
                         } finally {
                             // Cleanup
                             echo 'Cleaning up...'
-                            sh 'docker buildx rm billscanner-builder'
+                            //sh 'docker buildx rm billscanner-builder'
                             sh 'docker logout https://index.docker.io/v1/ && rm -f ~/.docker/config.json'
                         }
                     }
